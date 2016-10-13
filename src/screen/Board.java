@@ -105,8 +105,8 @@ public class Board extends JFrame {
     private void createComponentMap() {
         componentMap = new HashMap<>();
         Component[] components = this.getContentPane().getComponents();
-        for (int i=0; i < components.length; i++) {
-            componentMap.put(components[i].getName(), components[i]);
+        for (Component component : components) {
+            componentMap.put(component.getName(), component);
         }
     }
 

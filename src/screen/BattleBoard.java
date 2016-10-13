@@ -4,11 +4,14 @@ import custom_texture.MoveButton;
 import engine.BattleEngine;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
@@ -250,9 +253,14 @@ public class BattleBoard extends javax.swing.JPanel {
     }
     private void printImage(Pokemon pkmn, JLabel label) {
         if (label == PkmnImage) {
-            label.setIcon(pkmn.getImageMirrored(SPRITE));
+            label.setIcon(pkmn.getSpriteMirrored(SPRITE));
         } else {
-            label.setIcon(pkmn.getImage(SPRITE));
+            String image = ("D:\\Project\\SPRITE\\xy-animated-shiny\\001.gif");
+            System.out.println(image);
+            ImageIcon imageIcon = new ImageIcon(new ImageIcon(image).getImage());
+            imageIcon.getImage().getScaledInstance(WIDTH, HEIGHT, Image.SCALE_DEFAULT);
+            label.setIcon(imageIcon);
+//            label.setIcon(pkmn.getImage(SPRITE));
         }
     }
     

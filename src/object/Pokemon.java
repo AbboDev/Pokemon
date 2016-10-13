@@ -105,15 +105,15 @@ public class Pokemon {
     private int exp;
     
     //Maximun Value
-    private static final int maxIV = 31;
-    private static final int maxEV = 510;
-    private static final int maxMoves = 6;
-    private static final int maxAccuracy = 100;
-    private static final int maxElusion = 0;
-    private static final int maxHappiness = 0;
-    private static final int maxLevel = 100;
-    private static final int minCrit = 1;
-    private static final int maxCrit = 1;
+    private static final int MAX_IV = 31;
+    private static final int MAX_EV = 510;
+    private static final int MAX_MOVES = 6;
+    private static final int MAX_ACC = 100;
+    private static final int MAX_ELU = 0;
+    private static final int MAX_HPNS = 0;
+    private static final int MAX_LVL = 100;
+    private static final int MIN_CRIT = 1;
+    private static final int MAX_CRIT = 1;
     
     //Nature Stats
     private Nature nature;
@@ -184,7 +184,7 @@ public class Pokemon {
     private Random rand = new Random();
     private int random;
     
-    private static final File moves = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
+    private static final File MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
     
     public Pokemon() {
         firstType = null;
@@ -353,7 +353,7 @@ public class Pokemon {
         spAttack = (int) ((((IVSPAttack+(2*basicSPAttack)+(EVSPAttack/4))*level/100)+5)*natSpAtk);
         spDefense = (int) ((((IVSPDefense+(2*basicSPDefense)+(EVSPDefense/4))*level/100)+5)*natSpDef);
         speed = (int) ((((IVSpeed+(2*basicSpeed)+(EVSpeed/4))*level/100)+5)*natSpd);
-        tempCrit = minCrit;
+        tempCrit = MIN_CRIT;
         levelAtk = 0;
         levelDef = 0;
         levelSpAtk = 0;
@@ -382,9 +382,9 @@ public class Pokemon {
             ArrayList<Integer> move = new ArrayList<>(moveLevel.values());
             for(int i = move.size()-1; i >= 0; --i){
                 Integer integer = move.get(i);
-                if (moveSet.size() < maxMoves) {
+                if (moveSet.size() < MAX_MOVES) {
                     if (integer <= this.level && !moveSet.contains(moveLevel.getKey(integer))) {
-                        moveSet.add(0, new Move(moves, moveLevel.getKey(integer)));
+                        moveSet.add(0, new Move(MOVES, moveLevel.getKey(integer)));
                     }
                 } else { break; }
             }
@@ -403,23 +403,24 @@ public class Pokemon {
      * @return 
      */
     private int modBaseStats(int stat, int statsLevel) {
+        int newStat = 1;
         switch (statsLevel) {
-            case -6: stat *= 2/8; break;
-            case -5: stat *= 2/7; break;
-            case -4: stat *= 2/6; break;
-            case -3: stat *= 2/5; break;
-            case -2: stat *= 2/4; break;
-            case -1: stat *= 2/3; break;
-            case 0: stat *= 1; break;
-            case 1: stat *= 3/2; break;
-            case 2: stat *= 2; break;
-            case 3: stat *= 5/2; break;
-            case 4: stat *= 3; break;
-            case 5: stat *= 7/2; break;
-            case 6: stat *= 4; break;
-            default: stat *= 1; break;
+            case -6: newStat = (stat*2)/8; break;
+            case -5: newStat = (stat*2)/7; break;
+            case -4: newStat = (stat*2)/6; break;
+            case -3: newStat = (stat*2)/5; break;
+            case -2: newStat = (stat*2)/4; break;
+            case -1: newStat = (stat*2)/3; break;
+            case 0: newStat = stat * 1; break;
+            case 1: newStat = (stat*3)/2; break;
+            case 2: newStat = stat * 2; break;
+            case 3: newStat = (stat*5)/2; break;
+            case 4: newStat = stat * 3; break;
+            case 5: newStat = (stat*7)/2; break;
+            case 6: newStat = stat * 4; break;
+            default: newStat = stat * 1; break;
         }
-        return stat;
+        return newStat;
     }
     /**
      * Increase or decrease the int stat
@@ -428,23 +429,24 @@ public class Pokemon {
      * @return 
      */
     private int modOtherStats(int stat, int statLevel) {
+        int newStat = 1;
         switch (statLevel) {
-            case -6: stat *= 3/9; break;
-            case -5: stat *= 3/8; break;
-            case -4: stat *= 3/7; break;
-            case -3: stat *= 3/6; break;
-            case -2: stat *= 3/5; break;
-            case -1: stat *= 3/4; break;
-            case 0: stat *= 1; break;
-            case 1: stat *= 4/3; break;
-            case 2: stat *= 5/3; break;
-            case 3: stat *= 2; break;
-            case 4: stat *= 7/3; break;
-            case 5: stat *= 8/3; break;
-            case 6: stat *= 3; break;
-            default: stat *= 1; break;
+            case -6: newStat = (stat*3)/9; break;
+            case -5: newStat = (stat*3)/8; break;
+            case -4: newStat = (stat*3)/7; break;
+            case -3: newStat = (stat*3)/6; break;
+            case -2: newStat = (stat*3)/5; break;
+            case -1: newStat = (stat*3)/4; break;
+            case 0: newStat = stat * 1; break;
+            case 1: newStat = (stat*4)/3; break;
+            case 2: newStat = (stat*5)/3; break;
+            case 3: newStat = stat * 2; break;
+            case 4: newStat = (stat*7)/3; break;
+            case 5: newStat = (stat*8)/3; break;
+            case 6: newStat = stat * 3; break;
+            default: newStat = stat * 1; break;
         }
-        return stat;
+        return newStat;
     }
     
     public void giveItem(BagItem item) { ownItem = item; }
@@ -487,15 +489,15 @@ public class Pokemon {
     public int getNextExp() { return nextExp; }
     public int getExp() { return exp; }
 
-    public static int getMaxMoves() { return maxMoves; }
-    public static int getMaxAccuracy() { return maxAccuracy; }
-    public static int getMaxElusion() { return maxElusion; }
-    public static int getMaxHappiness() { return maxHappiness; }
-    public static int getMaxLevel() { return maxLevel; }
-    public static int getMaxIV() { return maxIV; }
-    public static int getMaxEV() { return maxEV; }
-    public static int getMinCrit() { return minCrit; }
-    public static int getMaxCrit() { return maxCrit; }
+    public static int getMaxMoves() { return MAX_MOVES; }
+    public static int getMaxAccuracy() { return MAX_ACC; }
+    public static int getMaxElusion() { return MAX_ELU; }
+    public static int getMaxHappiness() { return MAX_HPNS; }
+    public static int getMaxLevel() { return MAX_LVL; }
+    public static int getMaxIV() { return MAX_IV; }
+    public static int getMaxEV() { return MAX_EV; }
+    public static int getMinCrit() { return MIN_CRIT; }
+    public static int getMaxCrit() { return MAX_CRIT; }
     
     public int getBasicHP() { return basicHP; }
     public int getBasicAttack() { return basicAttack; }
@@ -516,8 +518,8 @@ public class Pokemon {
     public int getTempSpAtk() { return modBaseStats(spAttack, levelSpAtk); }
     public int getTempSpDef() { return modBaseStats(spDefense, levelSpDef); }
     public int getTempSpd() { return modBaseStats(speed, levelSpd); }
-    public int getTempAcc() { return modBaseStats(accuracy, levelSpd); }
-    public int getTempEva() { return modBaseStats(elusion, levelSpd); }
+    public int getTempAcc() { return modOtherStats(accuracy, levelSpd); }
+    public int getTempEva() { return modOtherStats(elusion, levelSpd); }
     public int getTempCrit() { return tempCrit; }
     
     public int getLevelAtk() { return levelAtk; }
@@ -527,13 +529,13 @@ public class Pokemon {
     public int getLevelSpd() { return levelSpd; }
     public int getLevelAcc() { return levelAcc; }
     public int getLevelEva() { return levelEva; }
-    public int setLevelAtk(int level) { return levelAtk += level; }
-    public int setLevelDef(int level) { return levelDef += level; }
-    public int setLevelSpAtk(int level) { return levelSpAtk += level; }
-    public int setLevelSpDef(int level) { return levelSpDef += level; }
-    public int setLevelSpd(int level) { return levelSpd += level; }
-    public int setLevelAcc(int level) { return levelAcc += level; }
-    public int setLevelEva(int level) { return levelEva += level; }
+    public int setLevelAtk(int level) { if (levelAtk > -6 || levelAtk < 6) levelAtk += level; return levelAtk; }
+    public int setLevelDef(int level) { if (levelDef > -6 || levelDef < 6) levelDef += level; return levelDef; }
+    public int setLevelSpAtk(int level) { if (levelSpAtk > -6 || levelSpAtk < 6) levelSpAtk += level; return levelSpAtk; }
+    public int setLevelSpDef(int level) { if (levelSpDef > -6 || levelSpDef < 6) levelSpDef += level; return levelSpDef; }
+    public int setLevelSpd(int level) { if (levelSpd > -6 || levelSpd < 6) levelSpd += level; return levelSpd; }
+    public int setLevelAcc(int level) { if (levelAcc > -6 || levelAcc < 6) levelAcc += level; return levelAcc; }
+    public int setLevelEva(int level) { if (levelEva > -6 || levelEva < 6) levelEva += level; return levelEva; }
 
     public Type getFirstType() { return firstType; }
     public Type getSecondType() { return secondType; }
@@ -576,7 +578,7 @@ public class Pokemon {
     public ArrayList<Move> getMoveSet() { return moveSet; }
     public int getNumberOfMoves() { return moveSet.size(); }
     public Move getRandomMove(boolean morePP, int usedPP) {
-        if (useStruggle()) return new Move(moves, "Struggle");
+        if (useStruggle()) return new Move(MOVES, "Struggle");
         random = rand.nextInt((moveSet.size() - 1) + 1) + 1;
         while (moveSet.get(random-1).getPP() <= 0) {
             random = rand.nextInt((moveSet.size() - 1) + 1) + 1;
@@ -616,31 +618,37 @@ public class Pokemon {
             StatsOfAttacks stat = move.getStats()[i];
             if (stat != null) {
                 switch (stat) {
-                    case Atk: levelAtk += move.getStatsLevel()[i]; break;
-                    case Def: levelDef += move.getStatsLevel()[i]; break;
-                    case SpAtk: levelSpAtk += move.getStatsLevel()[i]; break;
-                    case SpDef: levelSpDef += move.getStatsLevel()[i]; break;
-                    case Spd: levelSpd += move.getStatsLevel()[i]; break;
-                    case Acc: levelAcc += move.getStatsLevel()[i]; break;
-                    case Eva: levelEva += move.getStatsLevel()[i]; break;
+                    case Atk: setLevelAtk(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelAtk); break;
+                    case Def: setLevelDef(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelDef); break;
+                    case SpAtk: setLevelSpAtk(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelSpAtk); break;
+                    case SpDef: setLevelSpDef(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelSpDef); break;
+                    case Spd: setLevelSpd(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelSpd); break;
+                    case Acc: setLevelAcc(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelAcc); break;
+                    case Eva: setLevelEva(move.getStatsLevel()[i]);
+                        System.out.println(stat+": "+levelEva); break;
         //            case Critical: tempAtk = move.modBaseStats(tempAtk); break;
                     default: break;
                 }
-                System.out.println("");
             }
         }
     }
     public void resetCritical() {
-        tempCrit = minCrit;
+        tempCrit = MIN_CRIT;
     }
     
-    public ImageIcon getImage(String path) {
+    public ImageIcon getSprite(String path) {
         String image = getImagePath(path);
         System.out.println(image);
         ImageIcon imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
         return imageIcon;
     }
-    public ImageIcon getImageMirrored(String path) {
+    public ImageIcon getSpriteMirrored(String path) {
         String image = getImagePath(path);
         System.out.println(image);
         ImageIcon imageIcon = new MirrorImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
@@ -862,17 +870,17 @@ public class Pokemon {
         natureMultiplier(nature);
     }
     private void generateIV() {
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVHP = random;
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVAttack = random;
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVDefense = random;
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVSPAttack = random;
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVSPDefense = random;
-        random = rand.nextInt((maxIV - 1) + 1) + 1;
+        random = rand.nextInt((MAX_IV - 1) + 1) + 1;
         IVSpeed = random;
     }
     private Type setType(String type) {

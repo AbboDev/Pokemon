@@ -172,7 +172,7 @@ public class StatsBoard extends javax.swing.JPanel {
         nextLevel.setText(pkmn.getNextLevelExperience()+"");
     }
     private void printImage(Pokemon pkmn, JLabel label) {
-        label.setIcon(pkmn.getImage(SPRITE));
+        label.setIcon(pkmn.getSprite(SPRITE));
     }
     
 
