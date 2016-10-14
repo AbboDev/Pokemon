@@ -1,5 +1,5 @@
 Name;Type;Category;PP;Power;Accuracy;AoA;Status;Percentage;AoStatus;Stats;Percentage;Level;AoStats;Weather;Priority;Round;Hit;Effect
-Switch;Normal;Status;1;0;100%;One;;;;;;;;;0;1;1;Switch
+Switch;Normal;Status;1;0;o;One;;;;;;;;;6;1;1;Switch
 Pound;Normal;Physical;35;40;100%;One;;;;;;;;;0;1;1;
 Karate Chop;Fighting;Physical;25;50;100%;One;;;;Critical;100;1;Self;;0;1;1;NextTurnCrit
 Double Slap;Normal;Physical;10;15;85%;One;;;;;;;;;0;1;2_5;
@@ -200,7 +200,7 @@ Detect;Fighting;Status;5;o;o;One;;0;;;0;;;;4;1;1;
 Bone Rush;Ground;Physical;10;25;90%;One;;0;;;0;;;;0;1;1;
 Lock-On;Normal;Status;5;o;100%;One;;0;;;0;;;;0;1;1;
 Outrage;Dragon;Physical;10;120;100%;One;;0;;;0;;;;0;1;1;
-Sandstorm;Rock;Status;10;o;o;One;;0;;;0;;;;0;1;1;
+Sandstorm;Rock;Status;10;o;o;One;;0;;;0;;;SandStorm;0;1;1;
 Giga Drain;Grass;Special;10;75;100%;One;;0;;;0;;;;0;1;1;
 Endure;Normal;Status;10;o;o;One;;0;;;0;;;;3;1;1;
 Charm;Fairy;Status;20;o;100%;One;;0;;;0;;;;0;1;1;
@@ -239,8 +239,8 @@ Moonlight;Fairy;Status;5;o;o;One;;0;;;0;;;;0;1;1;
 Hidden Power;Normal;Special;15;60;100%;One;;0;;;0;;;;0;1;1;
 Cross Chop;Fighting;Physical;5;100;80%;One;;0;;;0;;;;0;1;1;
 Twister;Dragon;Special;20;40;100%;One;;0;;;0;;;;0;1;1;
-Rain Dance;Water;Status;5;o;o;One;;0;;;0;;;;0;1;1;
-Sunny Day;Fire;Status;5;o;o;One;;0;;;0;;;;0;1;1;
+Rain Dance;Water;Status;5;o;o;One;;0;;;0;;;Rainy;0;1;1;
+Sunny Day;Fire;Status;5;o;o;One;;0;;;0;;;Sunny;0;1;1;
 Crunch;Dark;Physical;15;80;100%;One;;0;;;0;;;;0;1;1;
 Mirror Coat;Psychic;Special;20;o;100%;One;;0;;;0;;;;-5;1;1;
 Psych Up;Normal;Status;10;o;o;One;;0;;;0;;;;0;1;1;

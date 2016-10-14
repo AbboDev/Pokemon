@@ -1,6 +1,7 @@
 package object;
 
 import java.util.ArrayList;
+import java.util.Random;
 /**
  * @author Thomas
  */
@@ -18,6 +19,14 @@ public class Party {
     
     public Pokemon getPkmn(int position) {
         return party.get(position);
+    }
+    public Pokemon getRandomPkmn() {
+        Random r = new Random();
+        int index = r.nextInt(((party.size() -0) +1) -0);
+        while (party.get(index).getStatus() != Pokemon.Status.KO) {
+            index = r.nextInt(((party.size() -0) +1) -0);
+        }
+        return party.get(index);
     }
     public void releasePkmn(int position) {
         if (party.size() > 1) {

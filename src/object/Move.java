@@ -28,7 +28,7 @@ public class Move {
         EachOther, Other,
     };
     public enum WeatherOfAttacks {
-        Sunny, Rainy, Hail, SandStorm
+        Sunny, Rainy, Hail, SandStorm, Reset
     };
     
     private Type moveType;
@@ -55,6 +55,7 @@ public class Move {
     private Area areaOfStats;
     
     private WeatherOfAttacks weather;
+    private int weatherRound;
     
     private String effect;
     
@@ -68,8 +69,7 @@ public class Move {
     
     private boolean canFlinch = false;
     private boolean canConfuse = false;
-    private boolean canTrap = false;
-    private boolean canCurse = false;
+    private boolean canInfatuated = false;
     
     private String name;
     
@@ -155,6 +155,7 @@ public class Move {
                     areaOfStats = setArea(currentLine[13]);
                     
                     weather = setWeather(currentLine[14]);
+                    weatherRound = 0;
                     
                     priority = parseInteger(currentLine[15]);
                     try {
@@ -224,6 +225,7 @@ public class Move {
     public Area getAreaOfStats() { return areaOfStats; }
     public Area getAreaOfStatus() { return areaOfStatus; }
     public WeatherOfAttacks getWeather() { return weather; }
+    public int getWeatherRound() { return weatherRound; }
     public String getEffect() { return effect; }
     
     public boolean isOneHitKO() { return isOneHitKO; }
@@ -235,8 +237,7 @@ public class Move {
 
     public boolean getIfFlinch() { return canFlinch; }
     public boolean getIfConfuse() { return canConfuse; }
-    public boolean getIfTrap() { return canTrap; }
-    public boolean getIfCurse() { return canCurse; }
+    public boolean getIfInfatuated() { return canInfatuated; }
         
     public String getName() { return name; }
         
@@ -307,7 +308,7 @@ public class Move {
         return tempType;
     }
     private StatusOfAttacks setStatus(String status) {
-        StatusOfAttacks tempStatus;
+        StatusOfAttacks tempStatus = null;
         switch (status) {
             case "BadPoisoned":
                 tempStatus = StatusOfAttacks.BadPoisoned; break;
@@ -321,6 +322,12 @@ public class Move {
                 tempStatus = StatusOfAttacks.Poison; break;
             case "Sleep":
                 tempStatus = StatusOfAttacks.Sleep; break;
+            case "Conf":
+                canConfuse = true; break;
+            case "Flinch":
+                canFlinch = true; break;
+            case "Infatuated":
+                canInfatuated = true; break;
             default:
                 tempStatus = null; break;
         }
@@ -373,10 +380,8 @@ public class Move {
                 canConfuse = true; break;
             case "Flinch":
                 canFlinch = true; break;
-            case "Trap":
-                canTrap = true; break;
-            case "Curse":
-                canCurse = true; break;
+            case "Infatuated":
+                canInfatuated = true; break;
             default:
                 break;
         }
@@ -403,7 +408,6 @@ public class Move {
     }
     
     public double moveEffect(Type enemyFirstType, Type enemySecondType, boolean isPoweredUp) {
-        boolean cycle = false;
         double multiplier = 1;
         Type currentType = enemyFirstType;
         //Calc of normal multiplier
@@ -892,6 +896,13 @@ public class Move {
                 default: break;
             }
             if (currentType == enemySecondType) {
+                if (multiplier == 0) System.out.println("It's not effective...");
+                else if (multiplier == 0.25) System.out.println("It's not really effective...");
+                else if (multiplier == 0.5) System.out.println("It's not very effective...!");
+                else if (multiplier == 1) System.out.println("Damage dealt.");
+                else if (multiplier == 2) System.out.println("It's effective!");
+                else if (multiplier == 4) System.out.println("It's super effective!!");
+                System.out.println("");
                 return multiplier;
             } else {
                 currentType = enemySecondType;

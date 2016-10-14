@@ -19,20 +19,21 @@ public class Board extends JFrame {
     private static final long serialVersionUID = 1L;
     
     private HashMap componentMap;
-
-    public static void main(String[] args) throws IOException {
-//        createComponentMap();
+    
+    public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
         
         String ROOT = System.getProperty("user.dir");
         if (ROOT.contains("\\dist")) {
-            System.out.println(ROOT.substring(0, ROOT.length()-5));
             ROOT = ROOT.substring(0, ROOT.length()-5);
         }
         
         ArrayList<File> file = new ArrayList<>();
-        File KANTO = new File(ROOT + "\\src\\pokemon\\kanto.csv");
-        File KANTO_MOVE = new File(ROOT + "\\src\\pokemon\\kantoMove.csv");
+//        File KANTO = new File(ROOT + "\\src\\pokemon\\kanto.csv");
+        File KANTO = new File(ROOT + "/src/pokemon/kanto.csv");
+//        File KANTO_MOVE = new File(ROOT + "\\src\\pokemon\\kantoMove.csv");
+        File KANTO_MOVE = new File(ROOT + "/src/pokemon/kantoMove.csv");
+
         file.add(KANTO);
         file.add(KANTO_MOVE);
         
@@ -61,30 +62,11 @@ public class Board extends JFrame {
                     battleBoard.refresh();
                     frame.remove(statsBoard);
                     frame.add(battleBoard);
-//                    try {
-//                        System.out.println("asd");
-//                        StatsBoard board = getStatsBoardComponents(frame.getRootPane());
-//                        System.out.println("fef");
-//                        Trainer switchTrainer = board.returnTrainer();
-//                        System.out.println("grsg");
-//                        frame.remove(0);
-//                        System.out.println("aewf");
-//                        frame.add(new BattleBoard(switchTrainer));
-//                        System.out.println("hyt");
-//                    } catch (IOException ex) {
-//                    }
                 } else if (ch == '2') {
                     statsBoard.setTrainer(battleBoard.returnTrainer());
                     statsBoard.refresh();
                     frame.remove(battleBoard);
                     frame.add(statsBoard);
-//                    try {
-//                        BattleBoard board = (BattleBoard) frame.getComponent(0);
-//                        Trainer switchTrainer = board.returnTrainer();
-//                        frame.remove(0);
-//                        frame.add(new StatsBoard(switchTrainer));
-//                    } catch (IOException ex) {
-//                    }
                 }
                 frame.revalidate();
                 frame.repaint();
@@ -101,6 +83,18 @@ public class Board extends JFrame {
         frame.add(battleBoard);
         frame.pack();
         frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        EventQueue.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Board board = new Board();
+                } catch (IOException e) {
+                }
+            }
+        });
     }
     private void createComponentMap() {
         componentMap = new HashMap<>();
@@ -150,28 +144,8 @@ class GameFrame extends JFrame {
     private void centerFrame(JFrame frame) {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point centerPoint = ge.getCenterPoint();
-
-//        int dx = centerPoint.x - windowSize.width / 2;
-//        int dy = centerPoint.y - windowSize.height / 2;
         int dx = centerPoint.x - 500;
         int dy = centerPoint.y - 300;
         frame.setLocation(dx, dy);
     }
 }
-
-//class KeyChecker extends KeyAdapter {
-//    private JFrame frame;
-//    public KeyChecker(JFrame frame) {
-//        this.frame = frame;
-//    }
-//    
-//    @Override
-//    public void keyPressed(KeyEvent event) {
-//        char ch = event.getKeyChar();
-//        System.out.println(event.getKeyChar());
-//        if (ch == '1') {
-//            frame.add(getExternalPanel(statsBoard));
-//        }
-//    }
-//}
-

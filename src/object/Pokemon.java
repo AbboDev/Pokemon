@@ -22,6 +22,7 @@ import object.Move.StatsOfAttacks;
 import org.apache.commons.collections4.*;
 import org.apache.commons.collections4.bidimap.DualHashBidiMap;
 import org.apache.commons.collections4.bidimap.DualLinkedHashBidiMap;
+
 /**
  * @author Thomas
  */
@@ -34,7 +35,7 @@ public class Pokemon {
     };
     public enum Status {
         OK, KO, Poison, Paralysis, Burn,
-        Freeze, Asleep, BadPoison, Confused
+        Freeze, Asleep, BadPoison
     };
     public enum Evolution {
         Level, Switch, Stone, SwitchItem,
@@ -97,6 +98,9 @@ public class Pokemon {
     private int elusion;
     private int happiness;
     private int level = 1;
+    private int roundBadPSN;
+    private int roundSLP;
+    private int roundCNF;
     
     //Exp Stats
     private int maxExp;
@@ -114,6 +118,8 @@ public class Pokemon {
     private static final int MAX_LVL = 100;
     private static final int MIN_CRIT = 1;
     private static final int MAX_CRIT = 1;
+    private static final int MIN_SLEEP = 1;
+    private static final int MAX_SLEEP = 3;
     
     //Nature Stats
     private Nature nature;
@@ -123,12 +129,6 @@ public class Pokemon {
     private double natSpDef = 1;
     private double natSpd = 1;
     
-    //Temp Stats (only battle)
-//    private int tempAtk;
-//    private int tempDef;
-//    private int tempSpAtk;
-//    private int tempSpDef;
-//    private int tempSpd;
     private int tempCrit;
     
     //Level Stats (only battle)
@@ -147,7 +147,11 @@ public class Pokemon {
     private boolean isFlying = false;
     private boolean isDig = false;
     private boolean isSub = false;
+    private boolean isConfused = false;
+    private boolean isInfatuated = false;
+    private boolean isFlinched = false;
     private boolean isMale;
+    private boolean noSex;
     
     private BagItem ownItem;
     private Ability ability;
@@ -184,7 +188,8 @@ public class Pokemon {
     private Random rand = new Random();
     private int random;
     
-    private static final File MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
+//    private static final File MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
+    private static final File MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
     
     public Pokemon() {
         firstType = null;
@@ -202,6 +207,7 @@ public class Pokemon {
     //Create a random Pokemon from .CSV
     public Pokemon(File csvStatsRegion, File csvMovesRegion, int ID, int level,
             boolean wild, String trainerIDhex, String trainerIDoct) {
+//        System.out.println(csvStatsRegion.getName());
         String pathStat = csvStatsRegion.getPath();
         BufferedReader bufferStats = null;
         String line, split = ";", splitMultiple = "$";
@@ -310,19 +316,25 @@ public class Pokemon {
                     maxExp = parseInteger(currentLine[26]);
                     exp = getLevelExperience(this.level);
                     
-                    genderRatio = Double.parseDouble(currentLine[27]);
                     catchRatio = parseInteger(currentLine[28]);
-                    if (genderRatio > 0 && genderRatio < 100) {
-                        random = rand.nextInt((100 - 0) + 1) + 0;
-                        if (random <= genderRatio) {
-                            isMale = true;
-                        } else if (random < genderRatio) {
+                    try {
+                        genderRatio = Double.parseDouble(currentLine[27]);
+                        if (genderRatio > 0 && genderRatio < 100) {
+                            random = rand.nextInt((100 - 0) + 1) + 0;
+                            if (random <= genderRatio) {
+                                isMale = true;
+                            } else if (random < genderRatio) {
+                                isMale = false;
+                            }
+                        } else if (genderRatio == 0) {
                             isMale = false;
+                        } else if (genderRatio == 100) {
+                            isMale = true;
                         }
-                    } else if (genderRatio == 0) {
+                        noSex = false;
+                    } catch (Exception e) {
+                        noSex = true;
                         isMale = false;
-                    } else if (genderRatio == 100) {
-                        isMale = true;
                     }
                     if (trainerIDhex != null && trainerIDoct != null) {
                         IDOfTrainer = trainerIDoct;
@@ -330,6 +342,8 @@ public class Pokemon {
                     } else {
                         IDOfTrainer = secretIDOfTrainer = null;
                     }
+                    roundBadPSN = 0;
+                    roundSLP = 0;
                     
                     random = rand.nextInt((25 - 1) + 1) + 1;
                     randomNature(random);
@@ -403,7 +417,7 @@ public class Pokemon {
      * @return 
      */
     private int modBaseStats(int stat, int statsLevel) {
-        int newStat = 1;
+        int newStat;
         switch (statsLevel) {
             case -6: newStat = (stat*2)/8; break;
             case -5: newStat = (stat*2)/7; break;
@@ -429,7 +443,7 @@ public class Pokemon {
      * @return 
      */
     private int modOtherStats(int stat, int statLevel) {
-        int newStat = 1;
+        int newStat;
         switch (statLevel) {
             case -6: newStat = (stat*3)/9; break;
             case -5: newStat = (stat*3)/8; break;
@@ -529,13 +543,62 @@ public class Pokemon {
     public int getLevelSpd() { return levelSpd; }
     public int getLevelAcc() { return levelAcc; }
     public int getLevelEva() { return levelEva; }
-    public int setLevelAtk(int level) { if (levelAtk > -6 || levelAtk < 6) levelAtk += level; return levelAtk; }
-    public int setLevelDef(int level) { if (levelDef > -6 || levelDef < 6) levelDef += level; return levelDef; }
-    public int setLevelSpAtk(int level) { if (levelSpAtk > -6 || levelSpAtk < 6) levelSpAtk += level; return levelSpAtk; }
-    public int setLevelSpDef(int level) { if (levelSpDef > -6 || levelSpDef < 6) levelSpDef += level; return levelSpDef; }
-    public int setLevelSpd(int level) { if (levelSpd > -6 || levelSpd < 6) levelSpd += level; return levelSpd; }
-    public int setLevelAcc(int level) { if (levelAcc > -6 || levelAcc < 6) levelAcc += level; return levelAcc; }
-    public int setLevelEva(int level) { if (levelEva > -6 || levelEva < 6) levelEva += level; return levelEva; }
+    public int setLevelAtk(int level) {
+        if (levelAtk > -6 && levelAtk < 6) {
+            if ((levelAtk+level) < -6) levelAtk = -6;
+            else if ((levelAtk+level) > 6) levelAtk = 6;
+            else levelAtk += level;
+        }
+        return levelAtk;
+    }
+    public int setLevelDef(int level) { 
+        if (levelDef > -6 && levelDef < 6) {
+            if ((levelDef+level) < -6) levelDef = -6;
+            else if ((levelDef+level) > 6) levelDef = 6;
+            else levelDef += level;
+        }
+        return levelDef;
+    }
+    public int setLevelSpAtk(int level) {
+        if (levelSpAtk > -6 && levelSpAtk < 6) {
+            if ((levelSpAtk+level) < -6) levelSpAtk = -6;
+            else if ((levelSpAtk+level) > 6) levelSpAtk = 6;
+            else levelSpAtk += level;
+        }
+        return levelSpAtk;
+    }
+    public int setLevelSpDef(int level) {
+        if (levelSpDef > -6 && levelSpDef < 6) {
+            if ((levelSpDef+level) < -6) levelSpDef = -6;
+            else if ((levelSpDef+level) > 6) levelSpDef = 6;
+            else  levelSpDef += level;
+        }
+        return levelSpDef;
+    }
+    public int setLevelSpd(int level) {
+        if (levelSpd > -6 && levelSpd < 6) {
+            if ((levelSpd+level) < -6) levelSpd = -6;
+            else if ((levelSpd+level) > 6) levelSpd = 6;
+            else levelSpd += level;
+        }
+        return levelSpd;
+    }
+    public int setLevelAcc(int level) {
+        if (levelAcc > -6 && levelAcc < 6) {
+            if ((levelAcc+level) < -6) levelAcc = -6;
+            else if ((levelAcc+level) > 6) levelAcc = 6;
+            else levelAcc += level;
+        }
+        return levelAcc;
+    }
+    public int setLevelEva(int level) {
+        if (levelEva > -6 && levelEva < 6) {
+            if ((levelEva+level) < -6) levelEva = -6;
+            else if ((levelEva+level) > 6) levelEva = 6;
+            else levelEva += level;
+        }
+        return levelEva;
+    }
 
     public Type getFirstType() { return firstType; }
     public Type getSecondType() { return secondType; }
@@ -544,15 +607,25 @@ public class Pokemon {
     public boolean getIfShiny() { return isShiny; }
     public boolean getIfPokerus() { return hasPokerus; }
     public boolean getIfMale() { return isMale; }
+    public boolean getIfAsessual() { return noSex; }
     public boolean getIfFlying() { return isFlying; }
     public boolean getIfDig() { return isDig; }
     public boolean getIfSub() { return isSub; }
+    public boolean getIfConfused() { return isConfused; }
+    public void setIfConfused(boolean cnf) { isConfused = cnf; }
+    public boolean getIfInfatuated() { return isInfatuated; }
+    public void setIfInfatuated(boolean inf) { isInfatuated = inf; }
+    public boolean getIfFlinched() { return isFlinched; }
+    public void setIfFlinched(boolean fli) { isFlinched = fli; }
     
     public double getGenderRatio() { return genderRatio; }
     public int getCatchRatio() { return catchRatio; }
     
     public Status getStatus() { return status; }
     public void setStatus(Status sts) { status = sts; }
+    public int getRoundBadPSN() { return roundBadPSN; }
+    public int getRoundSLP() { return roundSLP; }
+    public int getRoundCNF() { return roundCNF; }
     public Ability getAbility() { return ability; }
     public BagItem getOwnItem() { return ownItem; }
 
@@ -564,6 +637,7 @@ public class Pokemon {
     public String getSecretIDOfTrainer() { return secretIDOfTrainer; }
     public String getRegion() { return region; }
     public Nature getNature() { return nature; }
+    public BagItem getPokeball() { return pokeball; }
     
     public String getNextPokemon() { return nextPokemon; }
     public Evolution getEvolution() { return evolution; }
@@ -603,12 +677,26 @@ public class Pokemon {
     
     public void setStatus(Move move) {
         switch (move.getStatus()) {
-            case BadPoisoned: status = Status.BadPoison; break;
-            case Burn: status = Status.Burn; break;
-            case Freeze: status = Status.Freeze; break;
-            case Paralysis: status = Status.Paralysis; break;
-            case Poison: status = Status.Poison; break;
-            case Sleep: status = Status.Asleep; break;
+            case BadPoisoned:
+                if ((this.firstType != Type.Poison && this.firstType != Type.Steel) &&
+                        (this.secondType != Type.Poison && this.secondType != Type.Steel))
+                    status = Status.BadPoison; System.out.println(move.getStatus()); break;
+            case Burn:
+                if (this.firstType != Type.Fire && this.secondType != Type.Fire)
+                    status = Status.Burn; System.out.println(move.getStatus()); break;
+            case Freeze:
+                if (this.firstType != Type.Ice && this.secondType != Type.Ice)
+                    status = Status.Freeze; System.out.println(move.getStatus()); break;
+            case Paralysis:
+                if (this.firstType != Type.Electric && this.secondType != Type.Electric)
+                    status = Status.Paralysis; System.out.println(move.getStatus()); break;
+            case Poison:
+                if ((this.firstType != Type.Poison && this.firstType != Type.Steel) &&
+                        (this.secondType != Type.Poison && this.secondType != Type.Steel))
+                    status = Status.Poison; System.out.println(move.getStatus()); break;
+            case Sleep:
+                status = Status.Asleep; random = rand.nextInt((MAX_SLEEP - MIN_SLEEP) + 1) + MIN_SLEEP;
+                roundSLP = random; System.out.println(move.getStatus());break;
             default: break;
         }
     }
@@ -641,6 +729,9 @@ public class Pokemon {
     public void resetCritical() {
         tempCrit = MIN_CRIT;
     }
+    public void defeat() {
+        status = Status.KO;
+    }
     
     public ImageIcon getSprite(String path) {
         String image = getImagePath(path);
@@ -657,12 +748,15 @@ public class Pokemon {
     public String getImagePath(String sprite) {
         String path = "";
         if (this.getIfShiny()) {
-            path += "shiny\\"; 
+//            path += "shiny\\";
+            path += "shiny/"; 
         }
         if (!this.getIfMale()) {
-            boolean check = new File(sprite+"female\\"+ID+".png").exists();
+//            boolean check = new File(sprite+"female\\"+ID+".png").exists();
+            boolean check = new File(sprite+"female/"+ID+".png").exists();
             if (check)
-                path += "female\\";
+//                path += "female\\";
+                path += "female/";
         }
         String image = sprite + path + ID + ".png";
         return image;
@@ -750,6 +844,18 @@ public class Pokemon {
         } else {
             HP = 0;
         }
+    }
+    
+    public void increaseRoundBPSN() {
+        ++roundBadPSN;
+    }
+    public void decreaseRoundSLP() {
+        if (roundSLP > 0)
+            --roundSLP;
+    }
+    public void decreaseRoundCNF() {
+        if (roundCNF > 0)
+            --roundCNF;
     }
     
     private int parseInteger(String i) {
@@ -990,7 +1096,6 @@ public class Pokemon {
         return sortedMap;
     }
 }
-
 /**
  * This class return an instance of image
  * which is horizontaly flip

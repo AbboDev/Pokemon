@@ -4,14 +4,12 @@ import custom_texture.MoveButton;
 import engine.BattleEngine;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import javax.swing.Icon;
-import javax.swing.ImageIcon;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
@@ -29,9 +27,17 @@ public class BattleBoard extends javax.swing.JPanel {
     private final static int CURRENT_PKMN = 0;
     
     public Trainer self;
-    public final Trainer enemy = new Trainer();
+    public Trainer enemy;
     private final BattleEngine battleEngine;
-    private final Pokemon wild;
+    private final Pokemon otherPokemon;
+    private final boolean isTrainer;
+    private Thread battleThread;
+    private Thread switchThread;
+    private Pokemon switchedPkmn1; 
+    private Pokemon switchedPkmn2; 
+    private boolean firstTurn;
+    private ArrayList<Pokemon> defeatPkmn;
+    
     /**
      * Creates new form BattleBoard
      * @param self
@@ -40,53 +46,173 @@ public class BattleBoard extends javax.swing.JPanel {
      * @throws java.io.IOException
      */    
     public BattleBoard(Trainer self, String ROOT, ArrayList<File> files) throws IOException {
+        this.defeatPkmn = new ArrayList<>();
+        this.firstTurn = true;
+        this.switchedPkmn1 = null;
+        this.switchedPkmn2 = null;
         initComponents();
         makeUI();
         this.ROOT = ROOT;
         setPath(files);
         this.self = self;
+        isTrainer = false;
         
-        wild = new Pokemon(KANTO, KANTO_MOVE, 129, 102, true, null, null);
-        battleEngine = new BattleEngine(2, null, null);
+        otherPokemon = new Pokemon(KANTO, KANTO_MOVE, 129, 100, true, null, null);
+        battleEngine = new BattleEngine(2, null, null, false);
         
         refresh();
-        
-        jLabel1.setText(ROOT + " " + KANTO.getPath()+ " " + KANTO_MOVE.getName() );
+        decleareThread();
     }
+    /**
+     * Creates new form BattleBoard
+     * @param self
+     * @param enemy
+     * @param ROOT
+     * @param files
+     * @throws java.io.IOException
+     */    
+    public BattleBoard(Trainer self, Trainer enemy, String ROOT, ArrayList<File> files) throws IOException {
+        this.defeatPkmn = new ArrayList<>();
+        this.firstTurn = true;
+        this.switchedPkmn1 = null;
+        this.switchedPkmn2 = null;
+        initComponents();
+        makeUI();
+        this.ROOT = ROOT;
+        setPath(files);
+        this.self = self;
+        this.enemy = enemy;
+        isTrainer = true;
+        
+        otherPokemon = enemy.getParty().getPkmn(CURRENT_PKMN);
+        battleEngine = new BattleEngine(2, null, null, true);
+        
+        refresh();
+        decleareThread();
+    }
+    
+    private void switchPanel() {
+        BattleTab.setSelectedIndex(1);
+        BattleTab.setEnabledAt(0, false);
+        printParty(self);
+        System.out.println("0");
+        BattleTab.revalidate();
+        BattleTab.repaint();
+//        while (true) {
+//            
+//        }
+    }
+    private void checkEnemyParty() {
+        for (Pokemon pkmn: enemy.getParty().getArrayParty()) {
+            if (pkmn.getStatus() != Pokemon.Status.KO) continue;
+            else battleEnd(true); break;
+        }
+    }
+    private void decleareThread() {
+        switchThread = new Thread("SwitchThread") {
+            @Override
+            public void run() {
+                if (defeatPkmn != null) {
+                    if (defeatPkmn.contains(self.getParty().getPkmn(CURRENT_PKMN)) && defeatPkmn.contains(otherPokemon)) { //all
+                        System.err.println("self KO");
+                        System.err.println("enemy KO");
+                        switchPanel();
+                    } else {
+                        if (defeatPkmn.contains(self.getParty().getPkmn(CURRENT_PKMN))) {
+                            System.err.println("self KO");
+                        switchPanel();
+                        } else if (defeatPkmn.contains(otherPokemon)) {
+                            System.err.println("enemy KO");
+                            if (isTrainer) {
+                                checkEnemyParty();
+                                if (otherPokemon == battleEngine.getPokemonFromOrder(0)) {
+                                    
+                                } else if (otherPokemon == battleEngine.getPokemonFromOrder(1)) {
+                                    
+                                }
+                            } else {
+                                System.err.println("stop battle");
+                                battleEnd(true);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        battleThread = new Thread("BattleThread") {
+            @Override
+            public synchronized void run() {
+                if (firstTurn) {
+                    defeatPkmn = battleEngine.firstMove();
+                } else {
+                    defeatPkmn = battleEngine.secondMove(switchedPkmn1, switchedPkmn2);
+                }
+                setBackgroundWeather();
+                printHPBar(self.getParty().getPkmn(CURRENT_PKMN), true, HealtBar, Healt, Status);
+                printHPBar(otherPokemon, true, eHealtBar, eHealt, eStatus);
+                
+                //battleEngine.getPokemonFromOrder(0) == self.getParty().getPkmn(CURRENT_PKMN) && 
+                
+                
+//                battleEngine.setRoundFinish(self.getParty().getPkmn(CURRENT_PKMN), otherPokemon);
+                System.out.print(this.getState()+" - ");
+                this.interrupt();
+                System.out.println(this.getState());
+            }
+        };
+    }
+    
     private void setPath(ArrayList<File> files) {
-        SPRITE = ROOT + "\\sprite\\";
+//        SPRITE = ROOT + "\\sprite\\";
+        SPRITE = ROOT + "/sprite/";
         for (File thisFile: files) {
             switch (thisFile.getName()) {
                 case "kanto.csv": KANTO = thisFile;
-                    System.out.println(thisFile.getName());
-                    jLabel1.setText(thisFile.getName());
                     break;
                 case "kantoMove.csv": KANTO_MOVE = thisFile;
                     break;
                 default:
                     break;
             }
-//            KANTO = new File(ROOT + "src\\pokemon\\kanto.csv");
-//            KANTO_MOVE = new File(ROOT + "src\\pokemon\\kantoMove.csv");
         }
     }
     
     /**
-     * It return the trainer which its party's stats modified
+     * It return the trainer which its party's its modifies
      * @return
      */
     public Trainer returnTrainer() {
         return self;
     }
+
+    /**
+     *
+     * @param trn
+     */
     public void setTrainer(Trainer trn) {
         self = trn;
     }
     
+    private void setBackgroundWeather() {
+        String[] colorString = battleEngine.getWeather().split(",");
+        ArrayList<Integer> color = new ArrayList<>();
+        for(int i = 0; i < colorString.length; ++i) {
+            color.add(Integer.parseInt(colorString[i]));
+        }
+        this.setBackground(new Color(color.get(0), color.get(1), color.get(2)));
+        this.refresh();
+        this.revalidate();
+        this.repaint();
+    }
+    
+    /**
+     *
+     */
     public final void refresh() {
         try {
             printMove(this.self.getParty().getPkmn(CURRENT_PKMN));
             printInBattleStats(this.self.getParty().getPkmn(CURRENT_PKMN));
-            printEnemyInBattleStats(wild);
+            printEnemyInBattleStats(otherPokemon);
             printParty(this.self);
         } catch (IOException ex) {
         }
@@ -130,20 +256,28 @@ public class BattleBoard extends javax.swing.JPanel {
         button = new MoveButton(printMoveText(move), getType(move));
         button.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                if (pkmn.getStatus() != Pokemon.Status.KO) {
-                    if (pkmn.getMoveSet().get(index).getPP() > 0) {
+            public void actionPerformed(final ActionEvent e) {
+                if (pkmn.getStatus() != Pokemon.Status.KO && pkmn.getMoveSet().get(index).getPP() > 0) {
+                    try {
                         System.out.println("Press "+move.getName());
                         pkmn.getMoveSet().get(index).decreasePP(false, 1);
                         ((JButton) e.getSource()).setText(printMoveText(move));
-                        battleEngine.round(self.getParty().getPkmn(CURRENT_PKMN), move, wild, wild.getRandomMove(false,1));
-                        printHPBar(pkmn, true, HealtBar, Healt);
-                        printHPBar(wild, true, eHealtBar, eHealt);
-                        if (pkmn.getStatus() == Pokemon.Status.KO) {
-                            BattleTab.setSelectedIndex(1);
-                            BattleTab.setEnabledAt(0, false);
-                            printParty(self);
-                        }
+                        battleEngine.setPriority(self.getParty().getPkmn(CURRENT_PKMN), move,
+                                otherPokemon, otherPokemon.getRandomMove(false,1));
+                        firstTurn = true;
+                        battleThread.run();
+                        battleThread.join();
+                        switchThread.run();
+                        switchThread.join();
+                        
+                        firstTurn = false;
+                        battleThread.run();
+                        battleThread.join();
+                        switchThread.run();
+                        switchThread.join();
+                        battleEngine.setRoundFinish(self.getParty().getPkmn(CURRENT_PKMN), otherPokemon);
+                    } catch (InterruptedException ex) {
+                        Logger.getLogger(BattleBoard.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -156,6 +290,12 @@ public class BattleBoard extends javax.swing.JPanel {
     }    
     private Pokemon.Type getType(Move move) {
         return move.getMoveType();
+    }
+    
+    private void battleEnd(boolean close) {
+        if (close == true) {
+            this.setVisible(false);
+        }
     }
     
     private void removeParty() {
@@ -174,9 +314,7 @@ public class BattleBoard extends javax.swing.JPanel {
             }
         } catch (Exception e) {
         }
-        if (close == true) {
-            this.setVisible(false);
-        }
+        battleEnd(close);
         PartyPanel.revalidate();
         PartyPanel.repaint();        
     }
@@ -199,6 +337,7 @@ public class BattleBoard extends javax.swing.JPanel {
                     printImage(self.getParty().getPkmn(CURRENT_PKMN), PkmnImage);
                     printMove(self.getParty().getPkmn(CURRENT_PKMN));
                     printInBattleStats(self.getParty().getPkmn(CURRENT_PKMN));
+                    switchedPkmn1 = switchedPkmn2 = self.getParty().getPkmn(CURRENT_PKMN);
                     BattleTab.setEnabledAt(0, true);
                     BattleTab.setSelectedIndex(0);
                     printParty(self);
@@ -217,7 +356,7 @@ public class BattleBoard extends javax.swing.JPanel {
         Name.setText(pkmn.getName());
         printLevel(pkmn, Level);
         HealtBar.setMinimum(0);
-        printHPBar(pkmn, true, HealtBar, Healt);
+        printHPBar(pkmn, true, HealtBar, Healt, Status);
         printExpBar(pkmn, true);
         printImage(pkmn, PkmnImage);
     }
@@ -225,7 +364,7 @@ public class BattleBoard extends javax.swing.JPanel {
         eName.setText(pkmn.getName());
         printLevel(pkmn, eLevel);
         eHealtBar.setMinimum(0);
-        printHPBar(pkmn, true, eHealtBar, eHealt);
+        printHPBar(pkmn, true, eHealtBar, eHealt, eStatus);
         printImage(pkmn, ePkmnImage);
     }
     
@@ -234,17 +373,18 @@ public class BattleBoard extends javax.swing.JPanel {
             ExpBar.setMinimum(pkmn.getLevelExperience(pkmn.getLevel()));
             ExpBar.setMaximum(pkmn.getLevelExperience(pkmn.getLevel()+1));
             printLevel(pkmn, Level);
-            printHPBar(pkmn, change, HealtBar, Healt);
+            printHPBar(pkmn, change, HealtBar, Healt, Status);
         }
         ExpBar.setValue(pkmn.getExp());
         ExpBar.repaint();
     }
-    private void printHPBar(Pokemon pkmn, boolean change, JProgressBar jPrBar, JLabel jLbl) {
+    private void printHPBar(Pokemon pkmn, boolean change, JProgressBar jPrBar, JLabel jLbl1, JLabel jLbl2) {
         if (change) {
             jPrBar.setMaximum(pkmn.getMaxHP());
         }
         jPrBar.setValue(pkmn.getHP());
-        jLbl.setText(pkmn.getHP()+"/"+pkmn.getMaxHP());
+        jLbl1.setText(pkmn.getHP()+"/"+pkmn.getMaxHP());
+        jLbl2.setText(pkmn.getStatus().name());
     }
     private void printLevel(Pokemon pkmn, JLabel level) {
         String sex;
@@ -255,12 +395,7 @@ public class BattleBoard extends javax.swing.JPanel {
         if (label == PkmnImage) {
             label.setIcon(pkmn.getSpriteMirrored(SPRITE));
         } else {
-            String image = ("D:\\Project\\SPRITE\\xy-animated-shiny\\001.gif");
-            System.out.println(image);
-            ImageIcon imageIcon = new ImageIcon(new ImageIcon(image).getImage());
-            imageIcon.getImage().getScaledInstance(WIDTH, HEIGHT, Image.SCALE_DEFAULT);
-            label.setIcon(imageIcon);
-//            label.setIcon(pkmn.getImage(SPRITE));
+            label.setIcon(pkmn.getSprite(SPRITE));
         }
     }
     
@@ -273,7 +408,6 @@ public class BattleBoard extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        BackgroundLabel = new javax.swing.JLabel();
         BattleBoard = new javax.swing.JPanel();
         BattlePanel = new javax.swing.JPanel();
         Name = new javax.swing.JLabel();
@@ -321,17 +455,11 @@ public class BattleBoard extends javax.swing.JPanel {
         jTextField2 = new javax.swing.JTextField();
         jComboBox1 = new javax.swing.JComboBox();
 
-        setBackground(new java.awt.Color(51, 51, 51));
+        setBackground(new java.awt.Color(102, 204, 0));
         setToolTipText("");
         setMaximumSize(new java.awt.Dimension(1000, 600));
         setMinimumSize(new java.awt.Dimension(1000, 600));
         setPreferredSize(new java.awt.Dimension(1000, 600));
-
-        BackgroundLabel.setBackground(new java.awt.Color(255, 102, 102));
-        BackgroundLabel.setMaximumSize(new java.awt.Dimension(980, 578));
-        BackgroundLabel.setMinimumSize(new java.awt.Dimension(980, 578));
-        BackgroundLabel.setOpaque(true);
-        BackgroundLabel.setPreferredSize(new java.awt.Dimension(980, 578));
 
         BattleBoard.setMaximumSize(new java.awt.Dimension(980, 578));
         BattleBoard.setMinimumSize(new java.awt.Dimension(980, 578));
@@ -681,18 +809,18 @@ public class BattleBoard extends javax.swing.JPanel {
             .addGap(0, 995, Short.MAX_VALUE)
             .addGroup(OptionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(OptionPanelLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addGap(0, 480, Short.MAX_VALUE)
                     .addComponent(jLabel1)
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 481, Short.MAX_VALUE)))
         );
         OptionPanelLayout.setVerticalGroup(
             OptionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGap(0, 72, Short.MAX_VALUE)
             .addGroup(OptionPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                 .addGroup(OptionPanelLayout.createSequentialGroup()
-                    .addGap(0, 0, Short.MAX_VALUE)
+                    .addGap(0, 29, Short.MAX_VALUE)
                     .addComponent(jLabel1)
-                    .addGap(0, 0, Short.MAX_VALUE)))
+                    .addGap(0, 29, Short.MAX_VALUE)))
         );
 
         BattleTab.addTab("Option", OptionPanel);
@@ -783,8 +911,6 @@ public class BattleBoard extends javax.swing.JPanel {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(BattleBoard, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1000, Short.MAX_VALUE)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(BackgroundLabel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 1000, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -792,16 +918,10 @@ public class BattleBoard extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(BattleBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(BackgroundLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addContainerGap()))
         );
     }// </editor-fold>//GEN-END:initComponents
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel BackgroundLabel;
     private javax.swing.JPanel BagPanel;
     private javax.swing.JPanel BattleBoard;
     private javax.swing.JPanel BattlePanel;
