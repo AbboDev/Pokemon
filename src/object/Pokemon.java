@@ -187,11 +187,15 @@ public class Pokemon {
     
     private Random rand = new Random();
     private int random;
+    public static File MOVES;
+    private static String OS = System.getProperty("os.name").toLowerCase();
     
-//    private static final File MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
-    private static final File MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
-    
-    public Pokemon() {
+    public Pokemon() {        
+        if (OS.contains("win")) {
+            MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
+        } else {
+            MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
+        }
         firstType = null;
         secondType = null;
         status = Status.OK;
@@ -207,6 +211,7 @@ public class Pokemon {
     //Create a random Pokemon from .CSV
     public Pokemon(File csvStatsRegion, File csvMovesRegion, int ID, int level,
             boolean wild, String trainerIDhex, String trainerIDoct) {
+        this.MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
 //        System.out.println(csvStatsRegion.getName());
         String pathStat = csvStatsRegion.getPath();
         BufferedReader bufferStats = null;
@@ -218,6 +223,7 @@ public class Pokemon {
                 if (currentLine[0].equals(String.valueOf(ID))) {
                     this.ID = parseInteger(currentLine[0]);
                     name = currentLine[1];
+                    surname = name;
                     firstType = setType(currentLine[2]);
                     secondType = setType(currentLine[3]);
                     if (!currentLine[4].equals(currentLine[5])) {
@@ -735,13 +741,13 @@ public class Pokemon {
     
     public ImageIcon getSprite(String path) {
         String image = getImagePath(path);
-        System.out.println(image);
+//        System.out.println(image);
         ImageIcon imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
         return imageIcon;
     }
     public ImageIcon getSpriteMirrored(String path) {
         String image = getImagePath(path);
-        System.out.println(image);
+//        System.out.println(image);
         ImageIcon imageIcon = new MirrorImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
         return imageIcon;
     }

@@ -7,7 +7,7 @@ import java.util.Random;
  */
 public class Party {
     private int maxNumber = 12;
-    private ArrayList<Pokemon> party;
+    private final ArrayList<Pokemon> party;
     
     public Party() {
         party = new ArrayList<>();

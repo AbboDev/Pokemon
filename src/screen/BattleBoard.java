@@ -9,7 +9,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
@@ -26,17 +25,28 @@ public class BattleBoard extends javax.swing.JPanel {
     public File KANTO, KANTO_MOVE;
     private final static int CURRENT_PKMN = 0;
     
+    private static String OS = System.getProperty("os.name").toLowerCase();
+    private static Move switchMove = new Move(Pokemon.MOVES, "Switch");
+    
+    private final BattleEngine battleEngine;
+    private Thread battleThread;
+    private ArrayList<Pokemon> defeatPkmn;
+    private final boolean isTrainer;
+    
     public Trainer self;
     public Trainer enemy;
-    private final BattleEngine battleEngine;
+    private Pokemon selfPokemon;
+    private Move playerMove;
     private final Pokemon otherPokemon;
-    private final boolean isTrainer;
-    private Thread battleThread;
-    private Thread switchThread;
-    private Pokemon switchedPkmn1; 
-    private Pokemon switchedPkmn2; 
+    
+    private Pokemon switchedPkmn1;
+    private Pokemon switchedPkmn2;
+    private Pokemon selfSwitchedPkmn;
+    
     private boolean firstTurn;
-    private ArrayList<Pokemon> defeatPkmn;
+    private boolean playBattle;
+    private boolean pkmnChoose;
+    private boolean endBattle;
     
     /**
      * Creates new form BattleBoard
@@ -46,10 +56,16 @@ public class BattleBoard extends javax.swing.JPanel {
      * @throws java.io.IOException
      */    
     public BattleBoard(Trainer self, String ROOT, ArrayList<File> files) throws IOException {
-        this.defeatPkmn = new ArrayList<>();
-        this.firstTurn = true;
-        this.switchedPkmn1 = null;
-        this.switchedPkmn2 = null;
+        firstTurn = true;
+        playBattle = false;
+        pkmnChoose = false;
+        endBattle = false;
+        
+        defeatPkmn = new ArrayList<>();
+        switchedPkmn1 = null;
+        switchedPkmn2 = null;
+        selfSwitchedPkmn = null;
+        
         initComponents();
         makeUI();
         this.ROOT = ROOT;
@@ -58,6 +74,7 @@ public class BattleBoard extends javax.swing.JPanel {
         isTrainer = false;
         
         otherPokemon = new Pokemon(KANTO, KANTO_MOVE, 129, 100, true, null, null);
+        selfPokemon = self.getParty().getPkmn(CURRENT_PKMN);
         battleEngine = new BattleEngine(2, null, null, false);
         
         refresh();
@@ -72,10 +89,16 @@ public class BattleBoard extends javax.swing.JPanel {
      * @throws java.io.IOException
      */    
     public BattleBoard(Trainer self, Trainer enemy, String ROOT, ArrayList<File> files) throws IOException {
-        this.defeatPkmn = new ArrayList<>();
-        this.firstTurn = true;
-        this.switchedPkmn1 = null;
-        this.switchedPkmn2 = null;
+        firstTurn = true;
+        playBattle = false;
+        pkmnChoose = false;
+        endBattle = false;
+        
+        defeatPkmn = new ArrayList<>();
+        switchedPkmn1 = null;
+        switchedPkmn2 = null;
+        selfSwitchedPkmn = null;
+        
         initComponents();
         makeUI();
         this.ROOT = ROOT;
@@ -85,6 +108,7 @@ public class BattleBoard extends javax.swing.JPanel {
         isTrainer = true;
         
         otherPokemon = enemy.getParty().getPkmn(CURRENT_PKMN);
+        selfPokemon = self.getParty().getPkmn(CURRENT_PKMN);
         battleEngine = new BattleEngine(2, null, null, true);
         
         refresh();
@@ -94,13 +118,27 @@ public class BattleBoard extends javax.swing.JPanel {
     private void switchPanel() {
         BattleTab.setSelectedIndex(1);
         BattleTab.setEnabledAt(0, false);
-        printParty(self);
-        System.out.println("0");
         BattleTab.revalidate();
         BattleTab.repaint();
-//        while (true) {
-//            
-//        }
+        System.out.println("0");
+    }
+        
+    private void switchPkmn() {
+        battleEngine.switchPkmn(self, selfPokemon, selfSwitchedPkmn);
+        if (battleEngine.getPokemonFromOrder(0) == selfPokemon) {
+            switchedPkmn1 = selfSwitchedPkmn;
+        } else {
+            switchedPkmn2 = selfSwitchedPkmn;
+        }
+        selfPokemon = selfSwitchedPkmn;
+
+        BattleTab.setSelectedIndex(0);
+        BattleTab.setEnabledAt(0, true);
+        BattleTab.revalidate();
+        BattleTab.repaint();
+        selfRefresh();
+        
+        pkmnChoose = false;
     }
     private void checkEnemyParty() {
         for (Pokemon pkmn: enemy.getParty().getArrayParty()) {
@@ -108,63 +146,114 @@ public class BattleBoard extends javax.swing.JPanel {
             else battleEnd(true); break;
         }
     }
-    private void decleareThread() {
-        switchThread = new Thread("SwitchThread") {
-            @Override
-            public void run() {
-                if (defeatPkmn != null) {
-                    if (defeatPkmn.contains(self.getParty().getPkmn(CURRENT_PKMN)) && defeatPkmn.contains(otherPokemon)) { //all
-                        System.err.println("self KO");
-                        System.err.println("enemy KO");
-                        switchPanel();
+    
+    private boolean switchAction() {
+        if (defeatPkmn != null) {
+            if (defeatPkmn.contains(selfPokemon) && defeatPkmn.contains(otherPokemon)) { //all
+                System.err.println("self KO");
+                System.err.println("enemy KO");
+                if (isTrainer) {
+                    checkEnemyParty();
+                    if (otherPokemon == battleEngine.getPokemonFromOrder(0)) {
+                        switchedPkmn1 = otherPokemon;
+                    } else if (otherPokemon == battleEngine.getPokemonFromOrder(1)) {
+                        switchedPkmn2 = otherPokemon;
+                    }
+                } else {
+                    System.err.println("stop battle");
+                    battleEnd(true);
+                }
+                switchPanel();
+            } else {
+                if (defeatPkmn.contains(selfPokemon)) {
+                    System.err.println("self KO");
+                    switchPanel();
+                } else if (defeatPkmn.contains(otherPokemon)) {
+                    System.err.println("enemy KO");
+                    if (isTrainer) {
+                        checkEnemyParty();
+                        if (otherPokemon == battleEngine.getPokemonFromOrder(0)) {
+                            switchedPkmn1 = otherPokemon;
+                        } else if (otherPokemon == battleEngine.getPokemonFromOrder(1)) {
+                            switchedPkmn2 = otherPokemon;
+                        }
                     } else {
-                        if (defeatPkmn.contains(self.getParty().getPkmn(CURRENT_PKMN))) {
-                            System.err.println("self KO");
-                        switchPanel();
-                        } else if (defeatPkmn.contains(otherPokemon)) {
-                            System.err.println("enemy KO");
-                            if (isTrainer) {
-                                checkEnemyParty();
-                                if (otherPokemon == battleEngine.getPokemonFromOrder(0)) {
-                                    
-                                } else if (otherPokemon == battleEngine.getPokemonFromOrder(1)) {
-                                    
+                        System.err.println("stop battle");
+                        battleEnd(true);
+                    }
+                }
+            }
+        }
+        return defeatPkmn.contains(selfPokemon);
+    }
+    private void decleareThread() {
+        battleThread = new Thread("BattleThread") {
+            @Override
+            public synchronized void run() {
+                while (true) {
+                    while (!playBattle) {
+                        try { this.sleep(50); } catch (InterruptedException ex) { } //sleep
+                    }
+                    if (firstTurn) {
+                        battleEngine.setPriority(selfPokemon, playerMove, otherPokemon, otherPokemon.getRandomMove(false,1));
+                        if (pkmnChoose) {
+                            switchPkmn();
+                        }
+                        defeatPkmn = battleEngine.firstMove(switchedPkmn1, null, switchedPkmn2, null);
+                    } else {
+                        if (pkmnChoose) {
+                            switchPkmn();
+                        }
+                        defeatPkmn = battleEngine.secondMove(switchedPkmn1, null, switchedPkmn2, null);
+                    }
+                    setBackgroundWeather();
+                    printHPBar(selfPokemon, true, HealtBar, Healt, Status);
+                    printHPBar(otherPokemon, true, eHealtBar, eHealt, eStatus);
+                    
+                    if (defeatPkmn != null) {
+                        if (!defeatPkmn.isEmpty()) {
+                            boolean temp = switchAction();
+                            if (!endBattle) {
+                                if (temp) {
+                                    while (!pkmnChoose) {
+                                        try { this.sleep(50); } catch (InterruptedException ex) { } //sleep
+                                    }
                                 }
+                                if (battleEngine.getPokemonFromOrder(0) == selfPokemon) {
+                                    battleEngine.changeOrder(null, playerMove, null, null);
+                                } else {
+                                    battleEngine.changeOrder(null, null, null, playerMove);
+                                }
+                                switchPkmn();
+                                defeatPkmn.clear();
                             } else {
-                                System.err.println("stop battle");
-                                battleEnd(true);
+                               firstTurn = false;
                             }
                         }
+                    }
+                    
+                    if (!firstTurn) {
+                        battleEngine.setRoundFinish(selfPokemon, otherPokemon);
+                        playBattle = false;
+                        playerMove = null;
+                        switchedPkmn1 = null;
+                        switchedPkmn2 = null;
+                        selfSwitchedPkmn = null;
+                    } else {
+                        firstTurn = false;
                     }
                 }
             }
         };
-        battleThread = new Thread("BattleThread") {
-            @Override
-            public synchronized void run() {
-                if (firstTurn) {
-                    defeatPkmn = battleEngine.firstMove();
-                } else {
-                    defeatPkmn = battleEngine.secondMove(switchedPkmn1, switchedPkmn2);
-                }
-                setBackgroundWeather();
-                printHPBar(self.getParty().getPkmn(CURRENT_PKMN), true, HealtBar, Healt, Status);
-                printHPBar(otherPokemon, true, eHealtBar, eHealt, eStatus);
-                
-                //battleEngine.getPokemonFromOrder(0) == self.getParty().getPkmn(CURRENT_PKMN) && 
-                
-                
-//                battleEngine.setRoundFinish(self.getParty().getPkmn(CURRENT_PKMN), otherPokemon);
-                System.out.print(this.getState()+" - ");
-                this.interrupt();
-                System.out.println(this.getState());
-            }
-        };
+        battleThread.start();
     }
     
     private void setPath(ArrayList<File> files) {
-//        SPRITE = ROOT + "\\sprite\\";
-        SPRITE = ROOT + "/sprite/";
+        if (OS.contains("win")) {
+            SPRITE = ROOT + "\\sprite\\";
+        } else {
+            SPRITE = ROOT + "/sprite/";
+        }
         for (File thisFile: files) {
             switch (thisFile.getName()) {
                 case "kanto.csv": KANTO = thisFile;
@@ -210,10 +299,21 @@ public class BattleBoard extends javax.swing.JPanel {
      */
     public final void refresh() {
         try {
-            printMove(this.self.getParty().getPkmn(CURRENT_PKMN));
-            printInBattleStats(this.self.getParty().getPkmn(CURRENT_PKMN));
+            printMove(selfPokemon);
+            printParty(self);
+            printInBattleStats(selfPokemon);
+            printImage(selfPokemon, PkmnImage);
             printEnemyInBattleStats(otherPokemon);
-            printParty(this.self);
+            printImage(otherPokemon, ePkmnImage);
+        } catch (IOException ex) {
+        }
+    }
+    public final void selfRefresh() {
+        try {
+            printMove(selfPokemon);
+            printParty(self);
+            printInBattleStats(selfPokemon);
+            printImage(selfPokemon, PkmnImage);
         } catch (IOException ex) {
         }
     }
@@ -257,27 +357,15 @@ public class BattleBoard extends javax.swing.JPanel {
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
-                if (pkmn.getStatus() != Pokemon.Status.KO && pkmn.getMoveSet().get(index).getPP() > 0) {
-                    try {
+                if (!playBattle) {
+                    if (pkmn.getStatus() != Pokemon.Status.KO && pkmn.getMoveSet().get(index).getPP() > 0) {
                         System.out.println("Press "+move.getName());
                         pkmn.getMoveSet().get(index).decreasePP(false, 1);
                         ((JButton) e.getSource()).setText(printMoveText(move));
-                        battleEngine.setPriority(self.getParty().getPkmn(CURRENT_PKMN), move,
-                                otherPokemon, otherPokemon.getRandomMove(false,1));
+
                         firstTurn = true;
-                        battleThread.run();
-                        battleThread.join();
-                        switchThread.run();
-                        switchThread.join();
-                        
-                        firstTurn = false;
-                        battleThread.run();
-                        battleThread.join();
-                        switchThread.run();
-                        switchThread.join();
-                        battleEngine.setRoundFinish(self.getParty().getPkmn(CURRENT_PKMN), otherPokemon);
-                    } catch (InterruptedException ex) {
-                        Logger.getLogger(BattleBoard.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+                        playerMove = move;
+                        playBattle = true;
                     }
                 }
             }
@@ -295,6 +383,7 @@ public class BattleBoard extends javax.swing.JPanel {
     private void battleEnd(boolean close) {
         if (close == true) {
             this.setVisible(false);
+            endBattle = true;
         }
     }
     
@@ -307,7 +396,7 @@ public class BattleBoard extends javax.swing.JPanel {
         removeParty();
         try {
             for (int i = 0; i < party.size(); ++i) {
-                printPartyButton(party.get(i), new JButton(), i);
+                printPartyButton(party.get(i), new JButton());
                 if (party.get(i).getStatus() != Pokemon.Status.KO) {
                     close = false;
                 }
@@ -318,42 +407,70 @@ public class BattleBoard extends javax.swing.JPanel {
         PartyPanel.revalidate();
         PartyPanel.repaint();        
     }
-    private void printPartyButton(final Pokemon pkmn, JButton button, final int index) {
+    private void printPartyButton(final Pokemon pkmn, JButton button) {
         String sex;
         if (pkmn.getIfMale()) { sex = "♂"; } else { sex = "♀"; }
-        button = new JButton(pkmn.getName()+" "+sex);
-        if (pkmn.getStatus() == Pokemon.Status.KO) {
-            button.setBackground(Color.red);
-            button.setEnabled(false);
-        } else {
-            button.setBackground(Color.blue);
+        button = new JButton(pkmn.getSurname()+" "+sex);
+        if (null != pkmn.getStatus()) switch (pkmn.getStatus()) {
+            case KO:
+                button.setBackground(Color.red);
+                button.setEnabled(false);
+                break;
+            case Asleep:
+                button.setBackground(Color.gray);
+                break;
+            case Poison:
+                button.setBackground(Color.magenta);
+                break;
+            case BadPoison:
+                button.setBackground(Color.darkGray);
+                break;
+            case Paralysis:
+                button.setBackground(Color.yellow);
+                break;
+            case Burn:
+                button.setBackground(Color.orange);
+                break;
+            case Freeze:
+                button.setBackground(Color.cyan);
+                break;
+            default:
+                button.setBackground(Color.blue);
+                break;
         }
         button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                try {
+                if (!playBattle) {
+                    System.out.println("Press "+pkmn.getSurname());
                     int i = PartyPanel.getComponentZOrder(((JButton) e.getSource()));
-                    battleEngine.switchPkmn(self, self.getParty().getPkmn(CURRENT_PKMN), self.getParty().getPkmn(i));
-                    printImage(self.getParty().getPkmn(CURRENT_PKMN), PkmnImage);
-                    printMove(self.getParty().getPkmn(CURRENT_PKMN));
-                    printInBattleStats(self.getParty().getPkmn(CURRENT_PKMN));
-                    switchedPkmn1 = switchedPkmn2 = self.getParty().getPkmn(CURRENT_PKMN);
-                    BattleTab.setEnabledAt(0, true);
-                    BattleTab.setSelectedIndex(0);
-                    printParty(self);
-                } catch (IOException ex) {
+
+                    selfSwitchedPkmn = self.getParty().getPkmn(i);
+                    pkmnChoose = true;
+                    
+                    playerMove = switchMove;
+                    firstTurn = true;
+                    playBattle = true;
+                } else {
+                    System.out.println("Press "+pkmn.getSurname());
+                    int i = PartyPanel.getComponentZOrder(((JButton) e.getSource()));
+
+                    selfSwitchedPkmn = self.getParty().getPkmn(i);
+                    pkmnChoose = true;
+                    
+                    playerMove = switchMove;
                 }
-            }            
+            }
         });
         button.setPreferredSize(new Dimension(160, 60));
-        if (self.getParty().getPkmn(CURRENT_PKMN) == pkmn) {
+        if (selfPokemon == pkmn) {
             button.setEnabled(false);
         }
         PartyPanel.add(button);
     }
     
     private void printInBattleStats(Pokemon pkmn) throws IOException {
-        Name.setText(pkmn.getName());
+        Name.setText(pkmn.getSurname());
         printLevel(pkmn, Level);
         HealtBar.setMinimum(0);
         printHPBar(pkmn, true, HealtBar, Healt, Status);
@@ -361,7 +478,7 @@ public class BattleBoard extends javax.swing.JPanel {
         printImage(pkmn, PkmnImage);
     }
     private void printEnemyInBattleStats(Pokemon pkmn) throws IOException {
-        eName.setText(pkmn.getName());
+        eName.setText(pkmn.getSurname());
         printLevel(pkmn, eLevel);
         eHealtBar.setMinimum(0);
         printHPBar(pkmn, true, eHealtBar, eHealt, eStatus);

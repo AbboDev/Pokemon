@@ -73,8 +73,19 @@ public class Move {
     
     private String name;
     
+    private static String OS = System.getProperty("os.name").toLowerCase();
+    
     public Move (File csvMoves, String searchName) {
-        String pathMove = csvMoves.getPath();
+        String pathMove;
+        if (csvMoves != null) {
+            pathMove = csvMoves.getPath();
+        } else {
+            if (OS.contains("win")) {
+                pathMove = (System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
+            } else {
+                pathMove = (System.getProperty("user.dir")+"/src/pokemon/move.csv");
+            }
+        }
         BufferedReader bufferStats = null;
         String split = ";", splitMultiple = "$";
         String identifierFixD = "*", idientifierNull = "o";
