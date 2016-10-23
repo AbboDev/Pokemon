@@ -43,7 +43,7 @@ public class StatsBoard extends javax.swing.JPanel {
         refresh();
     }
     private void setPath(ArrayList<File> files) {
-        SPRITE = ROOT + "\\sprite\\";
+        SPRITE = "res/sprite";
         for (File thisFile: files) {
             switch (thisFile.getName()) {
                 case "kanto.csv": KANTO = thisFile;
@@ -172,7 +172,8 @@ public class StatsBoard extends javax.swing.JPanel {
         nextLevel.setText(pkmn.getNextLevelExperience()+"");
     }
     private void printImage(Pokemon pkmn, JLabel label) {
-        label.setIcon(pkmn.getSprite(SPRITE));
+        boolean sexBoolean = !pkmn.getIfAsessual();
+        label.setIcon(pkmn.getSprite(SPRITE, 256, 256, false, sexBoolean));
     }
     
 
@@ -266,7 +267,6 @@ public class StatsBoard extends javax.swing.JPanel {
         TextExp = new javax.swing.JTextField();
         Previous = new javax.swing.JButton();
         Next = new javax.swing.JButton();
-        BackgroundLabel = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(51, 51, 51));
         setToolTipText("");
@@ -991,19 +991,11 @@ public class StatsBoard extends javax.swing.JPanel {
 
         StatsBoardLayout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {GiveExp, Index, New, Refresh, TextExp});
 
-        BackgroundLabel.setBackground(new java.awt.Color(0, 153, 255));
-        BackgroundLabel.setMaximumSize(new java.awt.Dimension(980, 578));
-        BackgroundLabel.setMinimumSize(new java.awt.Dimension(980, 578));
-        BackgroundLabel.setOpaque(true);
-        BackgroundLabel.setPreferredSize(new java.awt.Dimension(980, 578));
-
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(StatsBoard, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(BackgroundLabel, javax.swing.GroupLayout.DEFAULT_SIZE, 1000, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1011,11 +1003,6 @@ public class StatsBoard extends javax.swing.JPanel {
                 .addContainerGap()
                 .addComponent(StatsBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
-            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(layout.createSequentialGroup()
-                    .addContainerGap()
-                    .addComponent(BackgroundLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addContainerGap()))
         );
     }// </editor-fold>//GEN-END:initComponents
 
@@ -1124,7 +1111,6 @@ public class StatsBoard extends javax.swing.JPanel {
     }//GEN-LAST:event_NewActionPerformed
     
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JLabel BackgroundLabel;
     private javax.swing.JProgressBar ExpBar;
     private javax.swing.JButton GiveExp;
     private javax.swing.JPanel HPpanel;

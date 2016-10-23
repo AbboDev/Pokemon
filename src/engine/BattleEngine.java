@@ -104,8 +104,6 @@ public class BattleEngine {
      * @return 
      */
     public ArrayList<Pokemon> setRoundFinish(Pokemon playerPkmn, Pokemon enemyPkmn) {
-        moveOrder.clear();
-        orderOfAttack.clear();
         return endTurnAction(playerPkmn, enemyPkmn);
     }
 
@@ -139,7 +137,7 @@ public class BattleEngine {
 
     private void action(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
         if (pkmnATK.getStatus() != Pokemon.Status.KO) {
-            if (pkmnATK.getRoundSLP() == 0) pkmnATK.setStatus(Pokemon.Status.OK);
+            if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) pkmnATK.setStatus(Pokemon.Status.OK);
             if (pkmnATK.getRoundCNF() == 0) pkmnATK.setIfConfused(false);
 
             if (!canAttackIfFrozen(pkmnATK)) {
@@ -345,9 +343,17 @@ public class BattleEngine {
             int N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
                 if (move.getAreaOfStatus() == Move.Area.Self) {
-                    pkmnATK.setStatus(move);
+                    if (pkmnATK.getStatus() == Pokemon.Status.OK) {
+                        pkmnATK.setStatus(move);
+                    } else {
+                        System.out.println(pkmnATK.getSurname()+" is already "+pkmnATK.getStatus().toString());
+                    }
                 } else {
-                    pkmnDEF.setStatus(move);
+                    if (pkmnDEF.getStatus() == Pokemon.Status.OK) {
+                        pkmnDEF.setStatus(move);
+                    } else {
+                        System.out.println(pkmnDEF.getSurname()+" is already "+pkmnDEF.getStatus().toString());
+                    }
                 }
             }
         }
@@ -355,9 +361,13 @@ public class BattleEngine {
             int N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
                 if (move.getAreaOfStatus() == Move.Area.Self) {
-                    pkmnATK.setIfConfused(true);
+                    if (!pkmnATK.getIfConfused()) {
+                        pkmnATK.setIfConfused(true);
+                    }
                 } else {
-                    pkmnDEF.setIfConfused(true);
+                    if (!pkmnDEF.getIfConfused()) {
+                        pkmnDEF.setIfConfused(true);
+                    }
                 }
             }
         }
@@ -367,9 +377,13 @@ public class BattleEngine {
                 int N = (rand.nextInt((100 - 0) + 1) + 0);
                 if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
                     if (move.getAreaOfStatus() == Move.Area.Self) {
-                        pkmnATK.setIfInfatuated(true);
+                        if (!pkmnATK.getIfInfatuated()) {
+                            pkmnATK.setIfInfatuated(true);
+                        }
                     } else {
-                        pkmnDEF.setIfInfatuated(true);
+                        if (!pkmnDEF.getIfInfatuated()) {
+                            pkmnDEF.setIfInfatuated(true);
+                        }
                     }
                 }
             }
@@ -378,9 +392,13 @@ public class BattleEngine {
             int N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
                 if (move.getAreaOfStatus() == Move.Area.Self) {
-                    pkmnATK.setIfFlinched(true);
+                    if (!pkmnATK.getIfFlinched()) {
+                        pkmnATK.setIfFlinched(true);
+                    }
                 } else {
-                    pkmnDEF.setIfFlinched(true);
+                    if (!pkmnDEF.getIfFlinched()) {
+                        pkmnDEF.setIfFlinched(true);
+                    }
                 }
             }
         } 
@@ -434,28 +452,33 @@ public class BattleEngine {
         if (weatherClock > 0) {
             --weatherClock;
         }
-        orderOfAttack.clear();
         return checkIfKO(pkmnATK, pkmnDEF);
     }
     
     //If Pokemon has malus it takes relative damage
     private void givePSNorBRNDamages(Pokemon pkmn) {
-        if (null != pkmn.getStatus()) switch (pkmn.getStatus()) {
-            case Poison:
-                pkmn.takeDamage(pkmn.getMaxHP() / 8);
-                System.out.println("Poison inflict "+pkmn.getMaxHP() / 8);
-                break;
-            case BadPoison:
-                pkmn.takeDamage((pkmn.getMaxHP() / 16) * pkmn.getRoundBadPSN());
-                pkmn.increaseRoundBPSN();
-                System.out.println("Bad Poison inflict "+(pkmn.getMaxHP() / 16) * pkmn.getRoundBadPSN() + " " + pkmn.getRoundBadPSN());
-                break;
-            case Burn:
-                pkmn.takeDamage(pkmn.getMaxHP() / 8);
-                System.out.println("Burn inflict "+pkmn.getMaxHP() / 8);
-                break;
-            default:
-                break;
+        if (null != pkmn.getStatus()) {
+            int statusDamage;
+            switch (pkmn.getStatus()) {
+                case Poison:
+                    statusDamage = pkmn.getMaxHP() / 8;
+                    pkmn.takeDamage(statusDamage);
+                    System.out.println("Poison inflict "+statusDamage);
+                    break;
+                case BadPoison:
+                    statusDamage = (pkmn.getMaxHP() / 16) * pkmn.getRoundBadPSN();
+                    pkmn.takeDamage(statusDamage);
+                    System.out.println("Bad Poison inflict "+statusDamage+" - "+pkmn.getRoundBadPSN());
+                    pkmn.increaseRoundBPSN();
+                    break;
+                case Burn:
+                    statusDamage = pkmn.getMaxHP() / 8;
+                    pkmn.takeDamage(statusDamage);
+                    System.out.println("Burn inflict "+statusDamage);
+                    break;
+                default:
+                    break;
+            }
         }
     }
     
@@ -540,5 +563,10 @@ public class BattleEngine {
     public void switchPkmn(Trainer trn, Pokemon pkmnOut, Pokemon pkmnIn) {
         trn.getParty().switchPokemon(pkmnOut, pkmnIn);
         System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
+    }
+    
+    public void flush() {
+        moveOrder.clear();
+        orderOfAttack.clear();
     }
 }

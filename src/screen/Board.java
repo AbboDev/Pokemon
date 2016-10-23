@@ -17,38 +17,43 @@ import object.Trainer;
 public class Board extends JFrame {
 
     private static final long serialVersionUID = 1L;
+    private static String OS = System.getProperty("os.name").toLowerCase();
     
     private HashMap componentMap;
     
     public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
         
-        String ROOT = System.getProperty("user.dir");
-        if (ROOT.contains("\\dist")) {
-            ROOT = ROOT.substring(0, ROOT.length()-5);
-        }
+        ClassLoader classLoader = getClass().getClassLoader();
         
+        String ROOT = System.getProperty("user.dir");
+        
+        File KANTO, KANTO_MOVE;
         ArrayList<File> file = new ArrayList<>();
-//        File KANTO = new File(ROOT + "\\src\\pokemon\\kanto.csv");
-        File KANTO = new File(ROOT + "/src/pokemon/kanto.csv");
-//        File KANTO_MOVE = new File(ROOT + "\\src\\pokemon\\kantoMove.csv");
-        File KANTO_MOVE = new File(ROOT + "/src/pokemon/kantoMove.csv");
+        
+        KANTO = new File(classLoader.getResource("res/database/kanto.csv").getFile());
+        KANTO_MOVE = new File(classLoader.getResource("res/database/kantoMove.csv").getFile());
+            
+        System.out.println(KANTO.getAbsolutePath());
+        System.out.println(KANTO_MOVE.getAbsolutePath());
 
         file.add(KANTO);
         file.add(KANTO_MOVE);
         
-        Pokemon gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 41, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon magikarp = new Pokemon(KANTO, KANTO_MOVE, 129, 10, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon charmander = new Pokemon(KANTO, KANTO_MOVE, 4, 13, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon charizard = new Pokemon(KANTO, KANTO_MOVE, 6, 40, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon mewtwo = new Pokemon(KANTO, KANTO_MOVE, 150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon bulbasaur = new Pokemon(KANTO, KANTO_MOVE, 1, 9, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon squirtle = new Pokemon(KANTO, KANTO_MOVE, 7, 15, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         mainCharacter.getParty().addPkmnToParty(gyarados);
-        mainCharacter.getParty().addPkmnToParty(magikarp);
-        mainCharacter.getParty().addPkmnToParty(charmander);
+        mainCharacter.getParty().addPkmnToParty(mewtwo);
+        mainCharacter.getParty().addPkmnToParty(charizard);
         mainCharacter.getParty().addPkmnToParty(bulbasaur);
         mainCharacter.getParty().addPkmnToParty(squirtle);
         
-        final BattleBoard battleBoard = new BattleBoard(mainCharacter, ROOT, file);
+        Pokemon enemy = new Pokemon(KANTO, KANTO_MOVE, 23, 50, true, null, null);
+        
+        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy, ROOT, file);
         final StatsBoard statsBoard = new StatsBoard(mainCharacter, ROOT, file);
         
         final JFrame frame = new GameFrame("Test");

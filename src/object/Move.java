@@ -73,26 +73,26 @@ public class Move {
     
     private String name;
     
-    private static String OS = System.getProperty("os.name").toLowerCase();
-    
     public Move (File csvMoves, String searchName) {
-        String pathMove;
+        String pathMove = null;
+        File fileMove = null;
         if (csvMoves != null) {
             pathMove = csvMoves.getPath();
         } else {
-            if (OS.contains("win")) {
-                pathMove = (System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
-            } else {
-                pathMove = (System.getProperty("user.dir")+"/src/pokemon/move.csv");
-            }
+            ClassLoader classLoader = getClass().getClassLoader();
+            fileMove = new File(classLoader.getResource("res/database/move.csv").getFile());
         }
         BufferedReader bufferStats = null;
-        String split = ";", splitMultiple = "$";
+        String split = ";", splitMultiple = "§";
         String identifierFixD = "*", idientifierNull = "o";
         try {
             String line;
-            bufferStats = new BufferedReader(new FileReader(pathMove));
-            while ((line = bufferStats.readLine()) != null ) {
+            if (pathMove != null) {
+                bufferStats = new BufferedReader(new FileReader(pathMove));
+            } else {
+                bufferStats = new BufferedReader(new FileReader(fileMove));
+            }
+            while ((line = bufferStats.readLine()) != null) {
                 String[] currentLine = line.split(split);
                 if (currentLine[0].equals(searchName)) {
                     name = currentLine[0];
@@ -321,13 +321,13 @@ public class Move {
     private StatusOfAttacks setStatus(String status) {
         StatusOfAttacks tempStatus = null;
         switch (status) {
-            case "BadPoisoned":
+            case "BadPsn":
                 tempStatus = StatusOfAttacks.BadPoisoned; break;
             case "Burn":
                 tempStatus = StatusOfAttacks.Burn; break;
             case "Freeze":
                 tempStatus = StatusOfAttacks.Freeze; break;
-            case "Paralysis":
+            case "Par":
                 tempStatus = StatusOfAttacks.Paralysis; break;
             case "Poison":
                 tempStatus = StatusOfAttacks.Poison; break;

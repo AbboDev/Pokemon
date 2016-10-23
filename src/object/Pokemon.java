@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,6 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import object.Move.StatsOfAttacks;
 
@@ -190,12 +192,12 @@ public class Pokemon {
     public static File MOVES;
     private static String OS = System.getProperty("os.name").toLowerCase();
     
-    public Pokemon() {        
-        if (OS.contains("win")) {
-            MOVES = new File(System.getProperty("user.dir")+"\\src\\pokemon\\move.csv");
-        } else {
-            MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
-        }
+    private void setMovesDir() {
+        ClassLoader classLoader = getClass().getClassLoader();
+        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
+    }
+    
+    public Pokemon() {
         firstType = null;
         secondType = null;
         status = Status.OK;
@@ -206,16 +208,16 @@ public class Pokemon {
         name = null;
         surname = null;
         nameOfTrainer = null;
+        setMovesDir();
     }
     
     //Create a random Pokemon from .CSV
     public Pokemon(File csvStatsRegion, File csvMovesRegion, int ID, int level,
             boolean wild, String trainerIDhex, String trainerIDoct) {
-        this.MOVES = new File(System.getProperty("user.dir")+"/src/pokemon/move.csv");
-//        System.out.println(csvStatsRegion.getName());
+        setMovesDir();
         String pathStat = csvStatsRegion.getPath();
         BufferedReader bufferStats = null;
-        String line, split = ";", splitMultiple = "$";
+        String line, split = ";", splitMultiple = "§";
         try {
             bufferStats = new BufferedReader(new FileReader(pathStat));
             while ((line = bufferStats.readLine()) != null ) {
@@ -348,7 +350,7 @@ public class Pokemon {
                     } else {
                         IDOfTrainer = secretIDOfTrainer = null;
                     }
-                    roundBadPSN = 0;
+                    roundBadPSN = 1;
                     roundSLP = 0;
                     
                     random = rand.nextInt((25 - 1) + 1) + 1;
@@ -707,7 +709,6 @@ public class Pokemon {
         }
     }
     public void setTempStats(Move move) {
-//        for (StatsOfAttacks stat: move.getStats()) {
         for (int i = 0; i < move.getStats().length-1; ++i) {
             StatsOfAttacks stat = move.getStats()[i];
             if (stat != null) {
@@ -739,33 +740,47 @@ public class Pokemon {
         status = Status.KO;
     }
     
-    public ImageIcon getSprite(String path) {
-        String image = getImagePath(path);
-//        System.out.println(image);
-        ImageIcon imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
-        return imageIcon;
-    }
-    public ImageIcon getSpriteMirrored(String path) {
-        String image = getImagePath(path);
-//        System.out.println(image);
-        ImageIcon imageIcon = new MirrorImageIcon(new ImageIcon(image).getImage().getScaledInstance(256, 256, Image.SCALE_SMOOTH));
-        return imageIcon;
-    }
-    public String getImagePath(String sprite) {
-        String path = "";
-        if (this.getIfShiny()) {
-//            path += "shiny\\";
-            path += "shiny/"; 
+    public ImageIcon getSprite(String path, int width, int height, boolean mirror, boolean sex) {
+        String imagePath = getImagePath(path, sex);
+        BufferedImage image = loadImage(imagePath);
+        ImageIcon imageIcon;
+        if (!mirror) {
+            imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+        } else {
+            imageIcon = new MirrorImageIcon(new ImageIcon(image).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
         }
-        if (!this.getIfMale()) {
-//            boolean check = new File(sprite+"female\\"+ID+".png").exists();
-            boolean check = new File(sprite+"female/"+ID+".png").exists();
-            if (check)
-//                path += "female\\";
-                path += "female/";
+        return imageIcon;
+    }
+    private String getImagePath(String sprite, boolean sex) {
+        String path = "/";
+        if (sex) {
+            if (this.getIfShiny()) {
+                boolean checkS;
+                checkS = new File(sprite+"shiny/"+ID+".png").exists();
+                if (checkS) {
+                    path += "shiny/";
+                } 
+            }
+            if (!this.getIfMale()) {
+                boolean checkF;
+                checkF = new File(sprite+"female/"+ID+".png").exists();
+                if (checkF) {
+                    path += "female/";
+                }
+            }
         }
         String image = sprite + path + ID + ".png";
         return image;
+    }
+    private BufferedImage loadImage(String path) {
+        BufferedImage buff;
+        ClassLoader classLoader = getClass().getClassLoader();
+        try {
+            buff = ImageIO.read(classLoader.getResourceAsStream(path));
+        } catch (IOException e) {
+            return null;
+        }
+        return buff;
     }
     
     public int getNextLevelExperience() {
