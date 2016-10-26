@@ -4,10 +4,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
+import javax.swing.UIManager.LookAndFeelInfo;
 import object.Pokemon;
 import object.Trainer;
 
@@ -17,9 +18,7 @@ import object.Trainer;
 public class Board extends JFrame {
 
     private static final long serialVersionUID = 1L;
-    private static String OS = System.getProperty("os.name").toLowerCase();
-    
-    private HashMap componentMap;
+//    private static String OS = System.getProperty("os.name").toLowerCase();
     
     public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
@@ -51,7 +50,9 @@ public class Board extends JFrame {
         mainCharacter.getParty().addPkmnToParty(bulbasaur);
         mainCharacter.getParty().addPkmnToParty(squirtle);
         
-        Pokemon enemy = new Pokemon(KANTO, KANTO_MOVE, 23, 50, true, null, null);
+        Pokemon enemy = new Pokemon(KANTO, KANTO_MOVE, 43, 36, true, null, null);
+        
+        putUI();
         
         final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy, ROOT, file);
         final StatsBoard statsBoard = new StatsBoard(mainCharacter, ROOT, file);
@@ -64,7 +65,7 @@ public class Board extends JFrame {
                 System.out.println(ch);
                 if (ch == '1') {
                     battleBoard.setTrainer(statsBoard.returnTrainer());
-                    battleBoard.refresh();
+                    battleBoard.printAll();
                     frame.remove(statsBoard);
                     frame.add(battleBoard);
                 } else if (ch == '2') {
@@ -101,31 +102,91 @@ public class Board extends JFrame {
             }
         });
     }
-    private void createComponentMap() {
-        componentMap = new HashMap<>();
-        Component[] components = this.getContentPane().getComponents();
-        for (Component component : components) {
-            componentMap.put(component.getName(), component);
-        }
+    private static void putUI() {
+        try {
+            Color bgc = new Color(0, 255, 0);
+            Color fgc = new Color(255, 0, 0);
+            
+//            UIManager.put("control", new Color(255, 255, 255, 0));
+            UIManager.put("info", new Color(255, 255, 255, 0)); //remove
+//            UIManager.put("nimbusAlertYellow", bgc);
+            UIManager.put("nimbusBase", new Color(30, 30, 30));
+            UIManager.put("nimbusDisabledText", new Color(100, 100, 100));
+//            UIManager.put("nimbusFocus", bgc);
+            UIManager.put("nimbusGreen", new Color(51, 255, 51));
+            UIManager.put("nimbusInfoBlue", new Color(0, 51, 255));
+//            UIManager.put("nimbusLightBackground", bgc);
+            UIManager.put("nimbusOrange	", new Color(255, 153, 0));
+            UIManager.put("nimbusRed", new Color(255, 0, 0));
+//            UIManager.put("nimbusSelectedText", bgc);
+            UIManager.put("nimbusSelectionBackground", new Color(40, 40, 40));
+//            UIManager.put("text", bgc);
+            
+            UIManager.put("activeCaption", bgc);
+            UIManager.put("background", bgc);
+            UIManager.put("controlDkShadow", bgc);
+            UIManager.put("controlHighlight", bgc);
+            UIManager.put("controlLHighlight", fgc);
+//            UIManager.put("controlText", fgc);
+//            UIManager.put("desktop", fgc);
+//            UIManager.put("inactiveCaption", fgc);
+//            UIManager.put("infoText", fgc);
+//            UIManager.put("menu", fgc);
+//            UIManager.put("menuText", fgc);
+//            UIManager.put("nimbusBlueGrey", fgc);
+//            UIManager.put("nimbusSelection", fgc);
+//            UIManager.put("nimbusSelection", fgc);
+//            UIManager.put("scrollbar", fgc);
+//            UIManager.put("textBackground", fgc);
+//            UIManager.put("textForeground", fgc);
+//            UIManager.put("textHighlight", fgc);
+//            UIManager.put("textHighlightText", fgc);
+//            UIManager.put("textInactiveText", fgc);
+
+//            UIManager.put("TabbedPane.shadow", fgc);
+//            UIManager.put("TabbedPane.darkShadow", fgc);
+//            UIManager.put("TabbedPane.light", fgc);
+//            UIManager.put("TabbedPane.highlight", fgc);
+//            UIManager.put("TabbedPane.tabAreaBackground", fgc);
+//            UIManager.put("TabbedPane.unselectedBackground", fgc);
+//            UIManager.put("TabbedPane.background", bgc);
+//            UIManager.put("TabbedPane.foreground", bgc);
+//            UIManager.put("TabbedPane.focus", fgc);
+//            UIManager.put("TabbedPane.contentAreaColor", fgc);
+//            UIManager.put("TabbedPane.selected", fgc);
+//            UIManager.put("TabbedPane.selectHighlight", fgc);
+//            UIManager.put("TabbedPane.borderHightlightColor", fgc);
+            
+//            UIManager.put("TabbedPane:TabbedPaneTabArea[Disabled].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled+MouseOver].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled+Pressed].backgroundPainter", bgc);
+//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled].backgroundPainter", bgc);
+//            
+//            UIManager.put("TabbedPane:TabbedPaneTab[Disabled+Selected].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Disabled].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled+MouseOver].backgroundPainter", bgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled+Pressed].backgroundPainter", bgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled].backgroundPainter", bgc);
+//            
+//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+MouseOver+Selected].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+Pressed+Selected].backgroundPainter", bgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+Selected].backgroundPainter", fgc);
+//            
+//            UIManager.put("TabbedPane:TabbedPaneTab[MouseOver+Selected].backgroundPainter", fgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Pressed+Selected].backgroundPainter", bgc);
+//            UIManager.put("TabbedPane:TabbedPaneTab[Selected].backgroundPainter", fgc);
+            
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+            
+//            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { }
     }
 
-    public Component getComponentByName(String name) {
-        if (componentMap.containsKey(name)) {
-            return (Component) componentMap.get(name);
-        }
-        else return null;
-    }
-    
-//    public static List<Component> getAllComponents(final Container c) {
-//        Component[] comps = c.getComponents();
-//        List<Component> compList = new ArrayList<>();
-//        for (Component comp : comps) {
-//            compList.add(comp);
-//            if (comp instanceof Container)
-//                compList.addAll(getAllComponents((Container) comp));
-//        }
-//        return compList;
-//    }
     public static StatsBoard getStatsBoardComponents(final Container c) {
         Component[] comps = c.getComponents();
         StatsBoard board = null;
@@ -144,6 +205,9 @@ class GameFrame extends JFrame {
         this.requestFocusInWindow();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
+        
+        this.setCursor(this.getToolkit().createCustomCursor(
+            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
     }
     
     private void centerFrame(JFrame frame) {

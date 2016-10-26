@@ -13,17 +13,21 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import object.Move.StatsOfAttacks;
 
-import org.apache.commons.collections4.*;
-import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-import org.apache.commons.collections4.bidimap.DualLinkedHashBidiMap;
+//import org.apache.commons.collections4.*;
+//import org.apache.commons.collections4.bidimap.DualHashBidiMap;
+//import org.apache.commons.collections4.bidimap.DualLinkedHashBidiMap;
 
 /**
  * @author Thomas
@@ -158,7 +162,8 @@ public class Pokemon {
     private BagItem ownItem;
     private Ability ability;
     private ArrayList<Move> moveSet = new ArrayList<>();
-    private BidiMap<String, Integer> moveLevel = new DualHashBidiMap<>();
+    private HashMap<String, Integer> moveLevel = new HashMap<>();
+//    private BidiMap<String, Integer> moveLevel = new DualHashBidiMap<>();
     
     //Evolution
     private String nextPokemon;
@@ -387,7 +392,8 @@ public class Pokemon {
         BufferedReader bufferMove = null;
         String line, split = ";", splitMove = "#";
         try {
-            BidiMap<String, Integer> unsortMap = new DualHashBidiMap<>();
+            HashMap<String, Integer> unsortMap = new HashMap<>();
+//            BidiMap<String, Integer> unsortMap = new DualHashBidiMap<>();
             bufferMove = new BufferedReader(new FileReader(pathMove));
             while ((line = bufferMove.readLine()) != null ) {
                 String[] currentLine = line.split(split);
@@ -405,8 +411,12 @@ public class Pokemon {
             for(int i = move.size()-1; i >= 0; --i){
                 Integer integer = move.get(i);
                 if (moveSet.size() < MAX_MOVES) {
-                    if (integer <= this.level && !moveSet.contains(moveLevel.getKey(integer))) {
-                        moveSet.add(0, new Move(MOVES, moveLevel.getKey(integer)));
+                    if (integer <= this.level) {
+//                        if (!moveSet.contains(moveLevel.getKey(integer))) {
+//                            moveSet.add(0, new Move(MOVES, moveLevel.getKey(integer)));
+                        if (!moveSet.contains(getKeyByValue(moveLevel, integer))) {
+                            moveSet.add(0, new Move(MOVES, getKeyByValue(moveLevel, integer)));
+                        }
                     }
                 } else { break; }
             }
@@ -416,6 +426,14 @@ public class Pokemon {
                 try { bufferMove.close(); } catch (IOException e) {}
             }
         }
+    }
+    public static <T, E> T getKeyByValue(Map<T, E> map, E value) {
+        for (Entry<T, E> entry : map.entrySet()) {
+            if (Objects.equals(value, entry.getValue())) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
     
     /**
@@ -742,6 +760,7 @@ public class Pokemon {
     
     public ImageIcon getSprite(String path, int width, int height, boolean mirror, boolean sex) {
         String imagePath = getImagePath(path, sex);
+//        System.out.println(imagePath);
         BufferedImage image = loadImage(imagePath);
         ImageIcon imageIcon;
         if (!mirror) {
@@ -753,17 +772,17 @@ public class Pokemon {
     }
     private String getImagePath(String sprite, boolean sex) {
         String path = "/";
+        if (this.getIfShiny()) {
+            boolean checkS;
+            checkS = new File(sprite+"shiny/"+ID+".png").exists();
+            if (checkS) {
+                path += "shiny/";
+            } 
+        }
         if (sex) {
-            if (this.getIfShiny()) {
-                boolean checkS;
-                checkS = new File(sprite+"shiny/"+ID+".png").exists();
-                if (checkS) {
-                    path += "shiny/";
-                } 
-            }
             if (!this.getIfMale()) {
                 boolean checkF;
-                checkF = new File(sprite+"female/"+ID+".png").exists();
+                checkF = new File(sprite+path+"female/"+ID+".png").exists();
                 if (checkF) {
                     path += "female/";
                 }
@@ -1094,7 +1113,8 @@ public class Pokemon {
     }
     
     //Thanks to https://www.mkyong.com/java/how-to-sort-a-map-in-java/
-    private static BidiMap<String, Integer> sortByValue(BidiMap<String, Integer> unsortMap) {
+    private static HashMap<String, Integer> sortByValue(HashMap<String, Integer> unsortMap) {
+//    private static BidiMap<String, Integer> sortByValue(BidiMap<String, Integer> unsortMap) {
         // 1. Convert Map to List of Map
         List<Map.Entry<String, Integer>> list =
                 new LinkedList<>(unsortMap.entrySet());
@@ -1110,7 +1130,8 @@ public class Pokemon {
         });
 
         // 3. Loop the sorted list and put it into a new insertion order Map LinkedHashMap
-        BidiMap<String, Integer> sortedMap = new DualLinkedHashBidiMap<>();
+        HashMap<String, Integer> sortedMap = new LinkedHashMap<>();
+//        BidiMap<String, Integer> sortedMap = new DualLinkedHashBidiMap<>();
         for (Map.Entry<String, Integer> entry : list) {
             sortedMap.put(entry.getKey(), entry.getValue());
         }

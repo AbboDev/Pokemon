@@ -14,8 +14,8 @@ import static object.Pokemon.Status.*;
  *
  * @author Thomas
  */
-public class PokemonPanel extends javax.swing.JPanel {
-    private String ICON;
+public class PkmnPartyPanel extends javax.swing.JPanel {
+    private final static String ICON = "res/icons";
     private final static int TIMER_DELAY = 150;
     private Pokemon pokemon;
     private Color original;
@@ -24,15 +24,14 @@ public class PokemonPanel extends javax.swing.JPanel {
     private MouseAdapter ma;
 
     /**
-     * Creates new form PokemonPanel
+     * Creates new form PkmnPartyPanel
      * @param pkmn
      */
-    public PokemonPanel (Pokemon pkmn) {
+    public PkmnPartyPanel (Pokemon pkmn) {
         initComponents();
         addListener();
         
         pokemon = pkmn;
-        ICON = "res/icons";
         startX = icon.getX();
         startY = icon.getY();
         
@@ -116,7 +115,7 @@ public class PokemonPanel extends javax.swing.JPanel {
                         }
                         int delay = ((pokemon.getMaxHP() / pokemon.getHP()) > 50) ? 50: pokemon.getMaxHP() / pokemon.getHP();
                         timerIcon.setDelay(TIMER_DELAY * (delay));
-                    } else {
+                    } else if (pokemon.getStatus() != Asleep) {
                         if (icon.getX() == startX) {
                             icon.setLocation(startX + 3, startY);
                             timerIcon.setDelay(TIMER_DELAY);

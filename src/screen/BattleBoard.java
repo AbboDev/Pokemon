@@ -1,7 +1,7 @@
 package screen;
 
-import custom_texture.MoveButton;
-import custom_texture.PokemonPanel;
+import custom_texture.MovePanel;
+import custom_texture.PkmnPartyPanel;
 import engine.BattleEngine;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -12,28 +12,35 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
-import javax.swing.UIManager;
+import javax.swing.Timer;
 import object.Move;
 import object.Pokemon;
+import static object.Pokemon.Status.*;
 import object.Trainer;
 
 /**
  * @author Thomas
  */
 public class BattleBoard extends javax.swing.JPanel {
+    private static final long serialVersionUID = -6244437515781556464L;
     public String ROOT, SPRITE;
     public File KANTO, KANTO_MOVE;
     private final static int CURRENT_PKMN = 0;
+    private final static int ANIMATION_DELAY = 150;
+    private final static int BAR_DELAY = 30;
     
 //    private static String OS = System.getProperty("os.name").toLowerCase();
     private static Move switchMove = new Move(Pokemon.MOVES, "Switch");
     
     private final BattleEngine battleEngine;
     private Thread battleThread;
+    private Timer selfHealtBarThread, otherHealtBarThread;
+    private Timer selfSpriteTimer, otherSpriteTimer;
+    private int selfX, selfY;
+    private int otherX, otherY;
     private ArrayList<Pokemon> defeatPkmn;
     private final boolean isTrainer;
     
@@ -51,6 +58,10 @@ public class BattleBoard extends javax.swing.JPanel {
     private boolean playBattle;
     private boolean pkmnChoose;
     private boolean endBattle;
+    private boolean selfHit, otherHit;
+    private int selfDamage, otherDamage;
+    private int selfHP, otherHP;
+    private Pokemon.Status selfStatus, otherStatus;
     
     /**
      * Creates new form BattleBoard
@@ -64,6 +75,8 @@ public class BattleBoard extends javax.swing.JPanel {
         playBattle = false;
         pkmnChoose = false;
         endBattle = false;
+        selfHit = otherHit = false;
+        selfDamage = otherDamage = 0;
         
         defeatPkmn = new ArrayList<>();
         switchedPkmn1 = null;
@@ -71,7 +84,6 @@ public class BattleBoard extends javax.swing.JPanel {
         selfSwitchedPkmn = null;
         
         initComponents();
-        makeUI();
         this.ROOT = ROOT;
         setPath(files);
         this.self = self;
@@ -80,8 +92,12 @@ public class BattleBoard extends javax.swing.JPanel {
         otherPokemon = pkmn;
         selfPokemon = self.getParty().getPkmn(CURRENT_PKMN);
         battleEngine = new BattleEngine(2, null, null, false);
+        otherHP = otherPokemon.getHP();
+        selfHP = selfPokemon.getHP();
+        selfStatus = selfPokemon.getStatus();
+        otherStatus = otherPokemon.getStatus();
         
-        refresh();
+        printAll();
         decleareThread();
         
         JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
@@ -104,6 +120,8 @@ public class BattleBoard extends javax.swing.JPanel {
         playBattle = false;
         pkmnChoose = false;
         endBattle = false;
+        selfHit = otherHit = false;
+        selfDamage = otherDamage = 0;
         
         defeatPkmn = new ArrayList<>();
         switchedPkmn1 = null;
@@ -111,7 +129,6 @@ public class BattleBoard extends javax.swing.JPanel {
         selfSwitchedPkmn = null;
         
         initComponents();
-        makeUI();
         this.ROOT = ROOT;
         setPath(files);
         this.self = self;
@@ -121,8 +138,10 @@ public class BattleBoard extends javax.swing.JPanel {
         otherPokemon = enemy.getParty().getPkmn(CURRENT_PKMN);
         selfPokemon = self.getParty().getPkmn(CURRENT_PKMN);
         battleEngine = new BattleEngine(2, null, null, true);
+        otherHP = otherPokemon.getHP();
+        selfHP = selfPokemon.getHP();
         
-        refresh();
+        printAll();
         decleareThread();
         
         JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
@@ -157,6 +176,7 @@ public class BattleBoard extends javax.swing.JPanel {
         
         pkmnChoose = false;
     }
+    
     private void checkEnemyParty() {
         for (Pokemon pkmn: enemy.getParty().getArrayParty()) {
             if (pkmn.getStatus() != Pokemon.Status.KO) continue;
@@ -203,37 +223,75 @@ public class BattleBoard extends javax.swing.JPanel {
         }
         return defeatPkmn.contains(selfPokemon);
     }
+    
     private void decleareThread() {
         battleThread = new Thread("BattleThread") {
             @Override
             public synchronized void run() {
                 while (true) {
                     while (!playBattle) {
-                        try { this.sleep(50); } catch (InterruptedException ex) { } //sleep
+                        try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
                     }
+                    selfStatus = selfPokemon.getStatus();
+                    otherStatus = otherPokemon.getStatus();
                     if (firstTurn) {
                         battleEngine.setPriority(selfPokemon, playerMove, otherPokemon, otherPokemon.getRandomMove(false,1));
                         if (pkmnChoose) {
                             switchPkmn();
                         }
+                        otherHP = otherPokemon.getHP();
+                        selfHP = selfPokemon.getHP();
                         defeatPkmn = battleEngine.firstMove(switchedPkmn1, null, switchedPkmn2, null);
+                        int damage = battleEngine.getDamage();
+//                        System.out.println(damage);
+                        if (battleEngine.getPokemonFromOrder(0) == otherPokemon) {
+                            selfDamage = damage;
+                            selfHit = true;
+                        } else if (battleEngine.getPokemonFromOrder(0) == selfPokemon) {
+                            otherDamage = damage;
+                            otherHit = true;
+                        }
+                        while (selfHit || otherHit) {
+                            try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                        }
                     } else {
                         if (pkmnChoose) {
                             switchPkmn();
                         }
+                        otherHP = otherPokemon.getHP();
+                        selfHP = selfPokemon.getHP();
                         defeatPkmn = battleEngine.secondMove(switchedPkmn1, null, switchedPkmn2, null);
+                        int damage = battleEngine.getDamage();
+//                        System.out.println(damage);
+                        if (battleEngine.getPokemonFromOrder(1) == otherPokemon) {
+                            selfDamage = damage;
+                            selfHit = true;
+                        } else if (battleEngine.getPokemonFromOrder(1) == selfPokemon) {
+                            otherDamage = damage;
+                            otherHit = true;
+                        }
+                        while (selfHit || otherHit) {
+                            try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                        }
                     }
+                    System.out.println("Finish Bar");
                     setBackgroundWeather();
-                    printHPBar(selfPokemon, true, HealtBar, Healt, Status);
-                    printHPBar(otherPokemon, true, eHealtBar, eHealt, eStatus);
+//                    if (selfStatus != selfPokemon.getStatus()) {
+                        printStat(selfPokemon, Status);
+//                    }
+//                    if (otherStatus != otherPokemon.getStatus()) {
+                        printStat(otherPokemon, eStatus);
+//                    }
                     
                     if (defeatPkmn != null) {
                         if (!defeatPkmn.isEmpty()) {
+                            PartyPanel.repaint();
+                            PartyPanel.revalidate();
                             boolean temp = switchAction();
                             if (!endBattle) {
                                 if (temp) {
                                     while (!pkmnChoose) {
-                                        try { this.sleep(50); } catch (InterruptedException ex) { } //sleep
+                                        try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
                                     }
                                 }
                                 if (battleEngine.getPokemonFromOrder(0) == selfPokemon) {
@@ -251,14 +309,23 @@ public class BattleBoard extends javax.swing.JPanel {
                     
                     if (!firstTurn) {
                         defeatPkmn = battleEngine.setRoundFinish(selfPokemon, otherPokemon);
-                        selfRefresh();
+                        if (battleEngine.getPkmn1Recoil() > 0) {
+                            selfDamage = battleEngine.getPkmn1Recoil();
+                            selfHit = true;
+                        } else if (battleEngine.getPkmn2Recoil() > 0) {
+                            otherDamage = battleEngine.getPkmn2Recoil();
+                            otherHit = true;
+                        }
+                        while (selfHit || otherHit) {
+                            try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                        }
                         if (defeatPkmn != null) {
                             if (!defeatPkmn.isEmpty()) {
                                 boolean temp = switchAction();
                                 if (!endBattle) {
                                     if (temp) {
                                         while (!pkmnChoose) {
-                                            try { this.sleep(50); } catch (InterruptedException ex) { } //sleep
+                                            try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
                                         }
                                     }
                                     if (battleEngine.getPokemonFromOrder(0) == selfPokemon) {
@@ -279,7 +346,7 @@ public class BattleBoard extends javax.swing.JPanel {
                         switchedPkmn1 = null;
                         switchedPkmn2 = null;
                         selfSwitchedPkmn = null;
-                        refresh();
+                        printParty(self);
                     } else {
                         firstTurn = false;
                     }
@@ -287,6 +354,111 @@ public class BattleBoard extends javax.swing.JPanel {
             }
         };
         battleThread.start();
+        
+        selfX = PkmnSprite.getX();
+        selfY = PkmnSprite.getY();
+        otherX = ePkmnSprite.getX();
+        otherY = ePkmnSprite.getY();
+        
+        selfSpriteTimer = new Timer(ANIMATION_DELAY, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selfPokemon.getStatus() != KO) {
+                    if (selfPokemon.getStatus() == OK) {
+                        if (PkmnSprite.getY() == selfY) {
+                            PkmnSprite.setLocation(selfX, selfY + 3);
+                        } else {
+                            PkmnSprite.setLocation(selfX, selfY);
+                        }
+                        int delay = ((selfPokemon.getMaxHP() / selfPokemon.getHP()) > 50)
+                                ? 50: selfPokemon.getMaxHP() / selfPokemon.getHP();
+                        selfSpriteTimer.setDelay(ANIMATION_DELAY * (delay));
+                    } else if (selfPokemon.getStatus() != Asleep) {
+                        if (PkmnSprite.getX() == selfX) {
+                            PkmnSprite.setLocation(selfX + 3, selfY);
+                            selfSpriteTimer.setDelay(ANIMATION_DELAY);
+                        } else {
+                            PkmnSprite.setLocation(selfX, selfY);
+                            selfSpriteTimer.setDelay(ANIMATION_DELAY*5);
+                        }
+                    }
+                }
+            }
+        });
+        otherSpriteTimer = new Timer(ANIMATION_DELAY, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (otherPokemon.getStatus() != KO) {
+                    if (otherPokemon.getStatus() == OK) {
+                        if (ePkmnSprite.getY() == otherY) {
+                            ePkmnSprite.setLocation(otherX, otherY + 3);
+                        } else {
+                            ePkmnSprite.setLocation(otherX, otherY);
+                        }
+                        int delay = ((otherPokemon.getMaxHP() / otherPokemon.getHP()) > 50)
+                                ? 50: otherPokemon.getMaxHP() / otherPokemon.getHP();
+                        otherSpriteTimer.setDelay(ANIMATION_DELAY * (delay));
+                    } else if (otherPokemon.getStatus() != Asleep) {
+                        if (ePkmnSprite.getX() == otherX) {
+                            ePkmnSprite.setLocation(otherX + 3, otherY);
+                            otherSpriteTimer.setDelay(ANIMATION_DELAY);
+                        } else {
+                            ePkmnSprite.setLocation(otherX, otherY);
+                            otherSpriteTimer.setDelay(ANIMATION_DELAY*5);
+                        }
+                    }
+                }
+            }
+        });
+        selfSpriteTimer.start();
+        otherSpriteTimer.start();
+        
+        selfHealtBarThread = new Timer(BAR_DELAY, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (selfHit) {
+//                    System.out.println("Start selfBar");
+                    if (selfDamage > 0) {
+                        if (selfHP > 0) {
+                            --selfDamage;
+                            HealtBar.setValue(HealtBar.getValue()-1);
+                            --selfHP;
+                            Healt.setText(selfHP+"/"+selfPokemon.getMaxHP());
+                        } else {
+                            selfHit = false;
+//                            System.out.println("Stop selfBar");
+                        }
+                    } else {
+                        selfHit = false;
+//                        System.out.println("Stop selfBar");
+                    }
+                }
+            }
+        });
+        otherHealtBarThread = new Timer(BAR_DELAY, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (otherHit) {
+//                    System.out.println("Start otherBar");
+                    if (otherDamage > 0) {
+                        if (otherHP > 0) {
+                            --otherDamage;
+                            eHealtBar.setValue(eHealtBar.getValue()-1);
+                            --otherHP;
+                            eHealt.setText(otherHP+"/"+otherPokemon.getMaxHP());
+                        } else {
+                            otherHit = false;
+//                            System.out.println("Stop otherBar");
+                        }
+                    } else {
+                        otherHit = false;
+//                        System.out.println("Stop otherBar");
+                    }
+                }
+            }
+        });
+        selfHealtBarThread.start();
+        otherHealtBarThread.start();
     }
     
     private void setPath(ArrayList<File> files) {
@@ -326,22 +498,21 @@ public class BattleBoard extends javax.swing.JPanel {
             color.add(Integer.parseInt(colorString[i]));
         }
         this.setBackground(new Color(color.get(0), color.get(1), color.get(2)));
-        this.refresh();
-        this.revalidate();
         this.repaint();
+        this.revalidate();
     }
     
     /**
      *
      */
-    public final void refresh() {
+    public final void printAll() {
         try {
             printMove(selfPokemon);
             printParty(self);
             printInBattleStats(selfPokemon);
-            printImage(selfPokemon, PkmnImage);
+            printImage(selfPokemon, PkmnSprite);
             printEnemyInBattleStats(otherPokemon);
-            printImage(otherPokemon, ePkmnImage);
+            printImage(otherPokemon, ePkmnSprite);
         } catch (IOException ex) {
         }
     }
@@ -350,28 +521,9 @@ public class BattleBoard extends javax.swing.JPanel {
             printMove(selfPokemon);
             printParty(self);
             printInBattleStats(selfPokemon);
-            printImage(selfPokemon, PkmnImage);
+            printImage(selfPokemon, PkmnSprite);
         } catch (IOException ex) {
         }
-    }
-    
-    private static void makeUI() {
-        Color bgc = new Color(51, 51, 51, 100);
-        Color fgc = new Color(102, 102, 102, 100);
-                
-        UIManager.put("TabbedPane.shadow", fgc);
-        UIManager.put("TabbedPane.darkShadow", fgc);
-        UIManager.put("TabbedPane.light", fgc);
-        UIManager.put("TabbedPane.highlight", fgc);
-        UIManager.put("TabbedPane.tabAreaBackground", fgc);
-        UIManager.put("TabbedPane.unselectedBackground", fgc);
-        UIManager.put("TabbedPane.background", bgc);
-        UIManager.put("TabbedPane.foreground", Color.WHITE);
-        UIManager.put("TabbedPane.focus", fgc);
-        UIManager.put("TabbedPane.contentAreaColor", fgc);
-        UIManager.put("TabbedPane.selected", fgc);
-        UIManager.put("TabbedPane.selectHighlight", fgc);
-        UIManager.put("TabbedPane.borderHightlightColor", fgc);
     }
     
     private void removeMove() {
@@ -379,42 +531,47 @@ public class BattleBoard extends javax.swing.JPanel {
     }
     private void printMove(final Pokemon pkmn) {
         final ArrayList<Move> moveSet = pkmn.getMoveSet();
+        ArrayList<JPanel> buttonSet = new ArrayList<>();
         removeMove();
         try {
             for (int i = 0; i < moveSet.size(); ++i) {
-                printMoveButton(pkmn, new JButton(), moveSet.get(i), i);
+                buttonSet.add(printMoveButton(pkmn, new JPanel(), moveSet.get(i), i));
             }
         } catch (Exception e) {
         }
-        MovePanel.revalidate();
+        for (JPanel button : buttonSet) {
+            MovePanel.add(button);
+        }
         MovePanel.repaint();
+        MovePanel.revalidate();
     }
-    private void printMoveButton(final Pokemon pkmn, JButton button, final Move move, final int index) {
-        button = new MoveButton(printMoveText(move), getType(move));
-        button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(final ActionEvent e) {
-                if (!playBattle) {
-                    if (pkmn.getStatus() != Pokemon.Status.KO && pkmn.getMoveSet().get(index).getPP() > 0) {
-                        System.out.println("Press "+move.getName());
-                        pkmn.getMoveSet().get(index).decreasePP(false, 1);
-                        ((JButton) e.getSource()).setText(printMoveText(move));
+    private JPanel printMoveButton(final Pokemon pkmn, JPanel button, final Move move, final int index) {
+        button = new MovePanel(move);
+        if (pkmn.getStatus() != Pokemon.Status.KO) {
+            button.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    if (!playBattle) {
+                        if (pkmn.getMoveSet().get(index).getPP() > 0) {
+                            System.out.println("Press "+move.getName());
+                            pkmn.getMoveSet().get(index).decreasePP(false, 1);
+                            MovePanel mvp = (MovePanel)e.getSource();
+                            mvp.getPP().setText(move.getPP()+"/"+move.getMaxPP());
 
-                        firstTurn = true;
-                        playerMove = move;
-                        playBattle = true;
+                            firstTurn = true;
+                            playerMove = move;
+                            playBattle = true;
+                            repaint();
+                            revalidate();
+                        }
                     }
                 }
-            }
-        });
+            });
+        } else {
+            button.setEnabled(false);
+        }
         button.setPreferredSize(new Dimension(160, 60));
-        MovePanel.add(button);
-    }
-    private String printMoveText(Move move) {
-        return move.getName()+" "+move.getPP()+"/"+move.getMaxPP();
-    }    
-    private Pokemon.Type getType(Move move) {
-        return move.getMoveType();
+        return button;
     }
     
     private void battleEnd(boolean close) {
@@ -430,22 +587,26 @@ public class BattleBoard extends javax.swing.JPanel {
     private void printParty(Trainer trn) {
         boolean close = true;
         final ArrayList<Pokemon> party = trn.getParty().getArrayParty();
+        ArrayList<JPanel> buttonSet = new ArrayList<>();
         removeParty();
         try {
             for (int i = 0; i < party.size(); ++i) {
-                printPartyButton(party.get(i), new JPanel());
                 if (party.get(i).getStatus() != Pokemon.Status.KO) {
                     close = false;
                 }
+                buttonSet.add(printPartyButton(party.get(i), new JPanel()));
             }
         } catch (Exception e) {
         }
         battleEnd(close);
-        PartyPanel.revalidate();
-        PartyPanel.repaint();        
+        for (JPanel button : buttonSet) {
+            PartyPanel.add(button);
+        }
+        PartyPanel.repaint();
+        PartyPanel.revalidate();        
     }
-    private void printPartyButton(final Pokemon pkmn, JPanel button) {
-        button = new PokemonPanel(pkmn);
+    private JPanel printPartyButton(final Pokemon pkmn, JPanel button) {
+        button = new PkmnPartyPanel(pkmn);
         if (pkmn.getStatus() != Pokemon.Status.KO) {
             if (pkmn != selfPokemon) {
                 button.addMouseListener(new MouseAdapter() {
@@ -477,9 +638,8 @@ public class BattleBoard extends javax.swing.JPanel {
             button.setEnabled(false);
         }
         button.setPreferredSize(new Dimension(160, 60));
-        PartyPanel.add(button);
+        return button;
     }
-    
     
     private void printInBattleStats(Pokemon pkmn) throws IOException {
         Name.setText(pkmn.getSurname());
@@ -487,14 +647,12 @@ public class BattleBoard extends javax.swing.JPanel {
         HealtBar.setMinimum(0);
         printHPBar(pkmn, true, HealtBar, Healt, Status);
         printExpBar(pkmn, true);
-        printImage(pkmn, PkmnImage);
     }
     private void printEnemyInBattleStats(Pokemon pkmn) throws IOException {
         eName.setText(pkmn.getSurname());
         printLevel(pkmn, eLevel);
         eHealtBar.setMinimum(0);
         printHPBar(pkmn, true, eHealtBar, eHealt, eStatus);
-        printImage(pkmn, ePkmnImage);
     }
     
     private void printExpBar(Pokemon pkmn, boolean change) {
@@ -519,10 +677,12 @@ public class BattleBoard extends javax.swing.JPanel {
         stat.setForeground(Color.black);
         switch (pkmn.getStatus()) {
             case OK:
+                stat.setText("OK");
+                stat.setBackground(Color.white);
                 break;
             case Asleep:
                 stat.setText("SLP");
-                stat.setBackground(Color.lightGray);
+                stat.setBackground(Color.gray);
                 break;
             case BadPoison:
                 stat.setText("BPSN");
@@ -559,9 +719,9 @@ public class BattleBoard extends javax.swing.JPanel {
     }
     private void printImage(Pokemon pkmn, JLabel label) {
         boolean sexBoolean = !pkmn.getIfAsessual();
-        if (label == PkmnImage) {
+        if (label == PkmnSprite) {
             label.setIcon(pkmn.getSprite(SPRITE, 256, 256, true, sexBoolean));
-        } else {
+        } else if (label == ePkmnSprite) {
             label.setIcon(pkmn.getSprite(SPRITE, 256, 256, false, sexBoolean));
         }
     }
@@ -586,7 +746,7 @@ public class BattleBoard extends javax.swing.JPanel {
         jTextField5 = new javax.swing.JTextField();
         Status = new javax.swing.JLabel();
         ImagePanel = new javax.swing.JPanel();
-        PkmnImage = new javax.swing.JLabel();
+        PkmnSprite = new javax.swing.JLabel();
         eBattlePanel = new javax.swing.JPanel();
         eName = new javax.swing.JLabel();
         eLevel = new javax.swing.JLabel();
@@ -596,15 +756,15 @@ public class BattleBoard extends javax.swing.JPanel {
         jTextField7 = new javax.swing.JTextField();
         eStatus = new javax.swing.JLabel();
         eImagePanel = new javax.swing.JPanel();
-        ePkmnImage = new javax.swing.JLabel();
+        ePkmnSprite = new javax.swing.JLabel();
         BattleTab = new javax.swing.JTabbedPane();
-        MovePanel = new javax.swing.JPanel();
-        PartyPanel = new javax.swing.JPanel();
-        OptionPanel = new javax.swing.JPanel();
-        BagPanel = new javax.swing.JPanel();
+        MovePanel = new AlphaPanel();
+        PartyPanel = new AlphaPanel();
+        OptionPanel = new AlphaPanel();
+        BagPanel = new AlphaPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         jList1 = new javax.swing.JList();
-        TextPanel = new javax.swing.JPanel();
+        TextPanel = new AlphaPanel();
         jButton1 = new javax.swing.JButton();
         jTextField2 = new javax.swing.JTextField();
         jComboBox1 = new javax.swing.JComboBox();
@@ -722,23 +882,22 @@ public class BattleBoard extends javax.swing.JPanel {
 
         ImagePanel.setOpaque(false);
 
-        PkmnImage.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        PkmnImage.setToolTipText("");
-        PkmnImage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PkmnSprite.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        PkmnSprite.setFocusable(false);
+        PkmnSprite.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PkmnSprite.setMaximumSize(new java.awt.Dimension(256, 256));
+        PkmnSprite.setMinimumSize(new java.awt.Dimension(256, 256));
+        PkmnSprite.setPreferredSize(new java.awt.Dimension(256, 256));
 
         javax.swing.GroupLayout ImagePanelLayout = new javax.swing.GroupLayout(ImagePanel);
         ImagePanel.setLayout(ImagePanelLayout);
         ImagePanelLayout.setHorizontalGroup(
             ImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
-            .addGroup(ImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(PkmnImage, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
+            .addComponent(PkmnSprite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         ImagePanelLayout.setVerticalGroup(
             ImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
-            .addGroup(ImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(PkmnImage, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
+            .addComponent(PkmnSprite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
         eBattlePanel.setBackground(new java.awt.Color(102, 102, 102));
@@ -830,36 +989,34 @@ public class BattleBoard extends javax.swing.JPanel {
 
         eImagePanel.setOpaque(false);
 
-        ePkmnImage.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        ePkmnImage.setToolTipText("");
-        ePkmnImage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        ePkmnSprite.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        ePkmnSprite.setFocusable(false);
+        ePkmnSprite.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        ePkmnSprite.setMaximumSize(new java.awt.Dimension(256, 256));
+        ePkmnSprite.setMinimumSize(new java.awt.Dimension(256, 256));
+        ePkmnSprite.setPreferredSize(new java.awt.Dimension(256, 256));
 
         javax.swing.GroupLayout eImagePanelLayout = new javax.swing.GroupLayout(eImagePanel);
         eImagePanel.setLayout(eImagePanelLayout);
         eImagePanelLayout.setHorizontalGroup(
             eImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
-            .addGroup(eImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(ePkmnImage, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
+            .addComponent(ePkmnSprite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         eImagePanelLayout.setVerticalGroup(
             eImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 256, Short.MAX_VALUE)
-            .addGroup(eImagePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(ePkmnImage, javax.swing.GroupLayout.DEFAULT_SIZE, 256, Short.MAX_VALUE))
+            .addComponent(ePkmnSprite, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
 
-        MovePanel.setOpaque(false);
         BattleTab.addTab("Moveset", MovePanel);
 
-        PartyPanel.setOpaque(false);
+        PartyPanel.setOpaque(true);
         PartyPanel.setPreferredSize(new java.awt.Dimension(200, 607));
         BattleTab.addTab("Party", PartyPanel);
 
-        OptionPanel.setOpaque(false);
+        OptionPanel.setOpaque(true);
         BattleTab.addTab("Option", OptionPanel);
 
-        BagPanel.setOpaque(false);
+        BagPanel.setOpaque(true);
 
         jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
         jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
@@ -875,16 +1032,16 @@ public class BattleBoard extends javax.swing.JPanel {
         BagPanel.setLayout(BagPanelLayout);
         BagPanelLayout.setHorizontalGroup(
             BagPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 995, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 995, Short.MAX_VALUE)
         );
         BagPanelLayout.setVerticalGroup(
             BagPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 72, Short.MAX_VALUE)
+            .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 74, Short.MAX_VALUE)
         );
 
         BattleTab.addTab("Bag", BagPanel);
 
-        TextPanel.setOpaque(false);
+        TextPanel.setOpaque(true);
 
         jButton1.setText("<SEND>");
         jButton1.setAutoscrolls(true);
@@ -900,7 +1057,6 @@ public class BattleBoard extends javax.swing.JPanel {
 
         jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         jComboBox1.setAutoscrolls(true);
-        jComboBox1.setMinimumSize(null);
         jComboBox1.setPreferredSize(new java.awt.Dimension(150, 60));
         TextPanel.add(jComboBox1);
 
@@ -913,8 +1069,8 @@ public class BattleBoard extends javax.swing.JPanel {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, BattleBoardLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(BattleBoardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(ImagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(eBattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(eBattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(ImagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(BattleBoardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(BattlePanel, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -929,7 +1085,7 @@ public class BattleBoard extends javax.swing.JPanel {
                 .addGroup(BattleBoardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(BattleBoardLayout.createSequentialGroup()
                         .addComponent(eImagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 115, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 142, Short.MAX_VALUE)
                         .addComponent(BattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(BattleBoardLayout.createSequentialGroup()
                         .addComponent(eBattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -947,10 +1103,7 @@ public class BattleBoard extends javax.swing.JPanel {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(BattleBoard, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
+            .addComponent(BattleBoard, javax.swing.GroupLayout.DEFAULT_SIZE, 600, Short.MAX_VALUE)
         );
     }// </editor-fold>//GEN-END:initComponents
     
@@ -969,7 +1122,7 @@ public class BattleBoard extends javax.swing.JPanel {
     private javax.swing.JLabel Name;
     private javax.swing.JPanel OptionPanel;
     private javax.swing.JPanel PartyPanel;
-    private javax.swing.JLabel PkmnImage;
+    private javax.swing.JLabel PkmnSprite;
     private javax.swing.JLabel Status;
     private javax.swing.JPanel TextPanel;
     private javax.swing.JPanel eBattlePanel;
@@ -979,7 +1132,7 @@ public class BattleBoard extends javax.swing.JPanel {
     private javax.swing.JPanel eImagePanel;
     private javax.swing.JLabel eLevel;
     private javax.swing.JLabel eName;
-    private javax.swing.JLabel ePkmnImage;
+    private javax.swing.JLabel ePkmnSprite;
     private javax.swing.JLabel eStatus;
     private javax.swing.JButton jButton1;
     private javax.swing.JComboBox jComboBox1;
@@ -989,4 +1142,10 @@ public class BattleBoard extends javax.swing.JPanel {
     private javax.swing.JTextField jTextField5;
     private javax.swing.JTextField jTextField7;
     // End of variables declaration//GEN-END:variables
+}
+
+class AlphaPanel extends JPanel {
+    public AlphaPanel() {
+        this.setBackground(new Color(102, 102, 102, 190));
+    }
 }

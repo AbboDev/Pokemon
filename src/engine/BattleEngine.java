@@ -29,8 +29,8 @@ public class BattleEngine {
     private int weatherClock;
     private final Arena arena;
     private int round;
-//    private int pkmn1Round;
-//    private int pkmn2Round;
+//    private int pkmn1Round, pkmn2Round;
+    private int pkmn1Recoil, pkmn2Recoil;
     private final boolean isTrainer;
     private final Random rand;
 
@@ -79,6 +79,7 @@ public class BattleEngine {
      */
     public ArrayList<Pokemon> firstMove(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
         changeOrder(pkmn1, move1, pkmn2, move2);
+        resetDamage();
         
         action(orderOfAttack.get(0), orderOfAttack.get(1), moveOrder.get(0));
         return checkIfKO(orderOfAttack.get(0), orderOfAttack.get(1));
@@ -92,6 +93,7 @@ public class BattleEngine {
      */
     public ArrayList<Pokemon> secondMove(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
         changeOrder(pkmn1, move1, pkmn2, move2);
+        resetDamage();
         
         action(orderOfAttack.get(1), orderOfAttack.get(0), moveOrder.get(1));
         return checkIfKO(orderOfAttack.get(1), orderOfAttack.get(0));
@@ -114,6 +116,10 @@ public class BattleEngine {
      */
     public Pokemon getPokemonFromOrder(int index) {
         return orderOfAttack.get(index);
+    }
+    
+    public void resetDamage() {
+        damage = 0;
     }
     
     public void changeOrder(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
@@ -195,6 +201,7 @@ public class BattleEngine {
     }
 
     private void calcSpeedPriority2(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
+        System.out.println(pkmn1.getSurname()+":"+pkmn1.getHP()+" - "+pkmn2.getSurname()+":"+pkmn2.getHP());
         int pkmnSPD1 = pkmn1.getTempSpd();
         if (pkmn1.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD1 /= 4;
@@ -203,7 +210,6 @@ public class BattleEngine {
         if (pkmn2.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD2 /= 4;
         }
-        System.out.println(pkmn1.getSurname()+":"+pkmnSPD1+" - "+pkmn2.getSurname()+":"+pkmnSPD2);
         if (move1.getPriority() == move2.getPriority()) {
             if (pkmnSPD1 > pkmnSPD2) {
                 orderOfAttack.add(pkmn1);
@@ -447,8 +453,8 @@ public class BattleEngine {
         pkmnDEF.decreaseRoundSLP();
         pkmnATK.setIfFlinched(false);
         pkmnDEF.setIfFlinched(false);
-        givePSNorBRNDamages(pkmnATK);
-        givePSNorBRNDamages(pkmnDEF);
+        pkmn1Recoil = givePSNorBRNDamages(pkmnATK);
+        pkmn2Recoil = givePSNorBRNDamages(pkmnDEF);
         if (weatherClock > 0) {
             --weatherClock;
         }
@@ -456,9 +462,9 @@ public class BattleEngine {
     }
     
     //If Pokemon has malus it takes relative damage
-    private void givePSNorBRNDamages(Pokemon pkmn) {
+    private int givePSNorBRNDamages(Pokemon pkmn) {
         if (null != pkmn.getStatus()) {
-            int statusDamage;
+            int statusDamage = 0;
             switch (pkmn.getStatus()) {
                 case Poison:
                     statusDamage = pkmn.getMaxHP() / 8;
@@ -479,7 +485,9 @@ public class BattleEngine {
                 default:
                     break;
             }
+            return statusDamage;
         }
+        return 0;
     }
     
     //If pokemon is paralyzed: if return true the pokemon
@@ -564,9 +572,20 @@ public class BattleEngine {
         trn.getParty().switchPokemon(pkmnOut, pkmnIn);
         System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
     }
+
+    public int getDamage() {
+        return damage;
+    }
+    public int getPkmn1Recoil() {
+        return pkmn1Recoil;
+    }
+    public int getPkmn2Recoil() {
+        return pkmn2Recoil;
+    }
     
     public void flush() {
         moveOrder.clear();
         orderOfAttack.clear();
+        pkmn1Recoil = pkmn2Recoil = 0;
     }
 }

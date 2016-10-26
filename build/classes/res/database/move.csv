@@ -1,4 +1,5 @@
 Name;Type;Category;PP;Power;Accuracy;AoA;Status;Percentage;AoStatus;Stats;Percentage;Level;AoStats;Weather;Priority;Round;Hit;Effect
+Item;Normal;Status;1;0;o;One;;;;;;;;;6;1;1;Item
 Switch;Normal;Status;1;0;o;One;;;;;;;;;6;1;1;Switch
 Pound;Normal;Physical;35;40;100%;One;;;;;;;;;0;1;1;
 Karate Chop;Fighting;Physical;25;50;100%;One;;;;Critical;100;1;Self;;0;1;1;NextTurnCrit

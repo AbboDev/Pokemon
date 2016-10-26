@@ -10,6 +10,13 @@
             <file>file:/F:/Project/Pokemon/src/object/Move.java</file>
             <file>file:/F:/Project/Pokemon/src/screen/StatsBoard.java</file>
         </group>
-        <group/>
+        <group>
+            <file>file:/E:/Pokemon/src/custom_texture/PkmnPartyPanel.java</file>
+            <file>file:/E:/Pokemon/src/object/Pokemon.java</file>
+            <file>file:/E:/Pokemon/src/custom_texture/MoveButton.java</file>
+            <file>file:/E:/Pokemon/src/custom_texture/MovePanel.java</file>
+            <file>file:/E:/Pokemon/src/screen/Board.java</file>
+            <file>file:/E:/Pokemon/src/screen/BattleBoard.java</file>
+        </group>
     </open-files>
 </project-private>
