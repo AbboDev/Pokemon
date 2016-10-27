@@ -143,7 +143,7 @@ Poison Gas;Poison;Status;40;o;90%;AllEnemies;Poison;100;AllEnemies;;;;;;0;1;1;
 Barrage;Normal;Physical;20;15;85%;One;;;;;;;;;0;1;2_5;
 Leech Life;Bug;Physical;15;20;100%;One;;;;;;;;;0;1;1;HalfBack
 Lovely Kiss;Normal;Status;10;o;75%;One;Sleep;100;One;;;;;;0;1;1;
-Sky Attack;Flying;Physical;5;140;90%;One;Flinch;30;One;Critical;100;1;Self;;0;1;o_2;
+Sky Attack;Flying;Physical;5;140;90%;One;Flinch;30;One;Critical;100;1;Self;;0;o_2;1;
 Transform;Normal;Status;10;o;o;One;;;;;;;;;0;1;1;Transform
 Bubble;Water;Special;30;40;100%;AllEnemies;;;;Spd;10;-1;AllEnemies;;0;1;1;
 Dizzy Punch;Normal;Physical;10;70;100%;One;Conf;20;One;;;;;;0;1;1;

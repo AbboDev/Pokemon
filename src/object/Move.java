@@ -39,7 +39,7 @@ public class Move {
     private int PP;
     
     private int round;
-    private int hit;
+    private int hitMin, hitMax;
     private int priority;
     
     private TypeOfAttacks type;
@@ -174,7 +174,13 @@ public class Move {
                                 firstTurnRest = true; break;
                         }
                     }
-                    hit = parseInteger(currentLine[17]);
+                    if (currentLine[17].contains("_")) {
+                        String[] hit = currentLine[17].split("_");
+                        hitMin = parseInteger(hit[0]);
+                        hitMax = parseInteger(hit[1]);
+                    } else {
+                        hitMin = parseInteger(currentLine[17]);
+                    }
                     
                     if (currentLine.length > 18) {
                         effect = (currentLine[18]);
@@ -194,7 +200,8 @@ public class Move {
     public int getPower() { return power; }
     public int getFixDamage() { return fixDamage; }
     public int getRound() { return round; }
-    public int getHit() { return hit; }
+    public int getHitMin() { return hitMin; }
+    public int getHitMax() { return hitMax; }
     public int getAccuracy() { return accuracy; }
     public int getPriority() { return priority; }
     

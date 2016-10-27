@@ -22,9 +22,9 @@ public class Party {
     }
     public Pokemon getRandomPkmn() {
         Random r = new Random();
-        int index = r.nextInt(((party.size() -0) +1) -0);
-        while (party.get(index).getStatus() != Pokemon.Status.KO) {
-            index = r.nextInt(((party.size() -0) +1) -0);
+        int index = r.nextInt(party.size());
+        while (party.get(index).getStatus() == Pokemon.Status.KO) {
+            index = r.nextInt(party.size());
         }
         return party.get(index);
     }

@@ -34,11 +34,19 @@ public class Board extends JFrame {
         mainCharacter.getParty().addPkmnToParty(ampharos);
         mainCharacter.getParty().addPkmnToParty(shuckle);
         
-        Pokemon enemy = new Pokemon(43, 36, true, null, null);
+//        Pokemon enemy = new Pokemon(43, 36, true, null, null);
+        Trainer rival = new Trainer();
+        Pokemon gengar = new Pokemon(94, 70, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon ariados = new Pokemon(168, 40, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon persian = new Pokemon(53, 32, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        rival.getParty().addPkmnToParty(gengar);
+        rival.getParty().addPkmnToParty(ariados);
+        rival.getParty().addPkmnToParty(persian);
         
         putUI();
         
-        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy);
+//        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy);
+        final BattleBoard battleBoard = new BattleBoard(mainCharacter, rival);
         final StatsBoard statsBoard = new StatsBoard(mainCharacter);
         
         final JFrame frame = new GameFrame("Test");
