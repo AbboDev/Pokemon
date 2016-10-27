@@ -4,7 +4,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,27 +27,34 @@ public class Board extends JFrame {
         String ROOT = System.getProperty("user.dir");
         
         File KANTO, KANTO_MOVE;
+        File JOHTO, JOHTO_MOVE;
         ArrayList<File> file = new ArrayList<>();
         
         KANTO = new File(classLoader.getResource("res/database/kanto.csv").getFile());
         KANTO_MOVE = new File(classLoader.getResource("res/database/kantoMove.csv").getFile());
+        JOHTO = new File(classLoader.getResource("res/database/johto.csv").getFile());
+        JOHTO_MOVE = new File(classLoader.getResource("res/database/johtoMove.csv").getFile());
             
         System.out.println(KANTO.getAbsolutePath());
         System.out.println(KANTO_MOVE.getAbsolutePath());
 
         file.add(KANTO);
         file.add(KANTO_MOVE);
+        file.add(JOHTO);
+        file.add(JOHTO_MOVE);
         
         Pokemon gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon charizard = new Pokemon(KANTO, KANTO_MOVE, 6, 40, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon mewtwo = new Pokemon(KANTO, KANTO_MOVE, 150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon bulbasaur = new Pokemon(KANTO, KANTO_MOVE, 1, 9, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon squirtle = new Pokemon(KANTO, KANTO_MOVE, 7, 15, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon charizard = new Pokemon(KANTO, KANTO_MOVE, 6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon mewtwo = new Pokemon(KANTO, KANTO_MOVE, 150, 15, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon umbreon = new Pokemon(JOHTO, JOHTO_MOVE, 197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon ampharos = new Pokemon(JOHTO, JOHTO_MOVE, 181, 80, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon shuckle = new Pokemon(JOHTO, JOHTO_MOVE, 213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         mainCharacter.getParty().addPkmnToParty(gyarados);
         mainCharacter.getParty().addPkmnToParty(mewtwo);
         mainCharacter.getParty().addPkmnToParty(charizard);
-        mainCharacter.getParty().addPkmnToParty(bulbasaur);
-        mainCharacter.getParty().addPkmnToParty(squirtle);
+        mainCharacter.getParty().addPkmnToParty(umbreon);
+        mainCharacter.getParty().addPkmnToParty(ampharos);
+        mainCharacter.getParty().addPkmnToParty(shuckle);
         
         Pokemon enemy = new Pokemon(KANTO, KANTO_MOVE, 43, 36, true, null, null);
         
@@ -206,8 +212,8 @@ class GameFrame extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);
         
-        this.setCursor(this.getToolkit().createCustomCursor(
-            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
+//        this.setCursor(this.getToolkit().createCustomCursor(
+//            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
     }
     
     private void centerFrame(JFrame frame) {

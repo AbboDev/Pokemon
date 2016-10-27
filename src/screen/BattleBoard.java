@@ -26,8 +26,9 @@ import object.Trainer;
  */
 public class BattleBoard extends javax.swing.JPanel {
     private static final long serialVersionUID = -6244437515781556464L;
-    public String ROOT, SPRITE;
-    public File KANTO, KANTO_MOVE;
+    public String ROOT;
+    public static final String SPRITE = "res/sprite";
+//    public File KANTO, KANTO_MOVE;
     private final static int CURRENT_PKMN = 0;
     private final static int ANIMATION_DELAY = 150;
     private final static int BAR_DELAY = 30;
@@ -61,7 +62,7 @@ public class BattleBoard extends javax.swing.JPanel {
     private boolean selfHit, otherHit;
     private int selfDamage, otherDamage;
     private int selfHP, otherHP;
-    private Pokemon.Status selfStatus, otherStatus;
+//    private Pokemon.Status selfStatus, otherStatus;
     
     /**
      * Creates new form BattleBoard
@@ -85,7 +86,7 @@ public class BattleBoard extends javax.swing.JPanel {
         
         initComponents();
         this.ROOT = ROOT;
-        setPath(files);
+//        setPath(files);
         this.self = self;
         isTrainer = false;
         
@@ -94,17 +95,17 @@ public class BattleBoard extends javax.swing.JPanel {
         battleEngine = new BattleEngine(2, null, null, false);
         otherHP = otherPokemon.getHP();
         selfHP = selfPokemon.getHP();
-        selfStatus = selfPokemon.getStatus();
-        otherStatus = otherPokemon.getStatus();
+//        selfStatus = selfPokemon.getStatus();
+//        otherStatus = otherPokemon.getStatus();
         
         printAll();
         decleareThread();
         
-        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
-        OptionPanel.add(label);
-        OptionPanel.revalidate();
+//        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
+//        OptionPanel.add(label);
+//        OptionPanel.revalidate();
         BattleTab.revalidate();
-        OptionPanel.repaint();
+//        OptionPanel.repaint();
         BattleTab.repaint();
     }
     /**
@@ -130,7 +131,7 @@ public class BattleBoard extends javax.swing.JPanel {
         
         initComponents();
         this.ROOT = ROOT;
-        setPath(files);
+//        setPath(files);
         this.self = self;
         this.enemy = enemy;
         isTrainer = true;
@@ -144,11 +145,11 @@ public class BattleBoard extends javax.swing.JPanel {
         printAll();
         decleareThread();
         
-        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
-        OptionPanel.add(label);
-        OptionPanel.revalidate();
+//        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
+//        OptionPanel.add(label);
+//        OptionPanel.revalidate();
         BattleTab.revalidate();
-        OptionPanel.repaint();
+//        OptionPanel.repaint();
         BattleTab.repaint();
     }
     
@@ -232,8 +233,8 @@ public class BattleBoard extends javax.swing.JPanel {
                     while (!playBattle) {
                         try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
                     }
-                    selfStatus = selfPokemon.getStatus();
-                    otherStatus = otherPokemon.getStatus();
+//                    selfStatus = selfPokemon.getStatus();
+//                    otherStatus = otherPokemon.getStatus();
                     if (firstTurn) {
                         battleEngine.setPriority(selfPokemon, playerMove, otherPokemon, otherPokemon.getRandomMove(false,1));
                         if (pkmnChoose) {
@@ -460,21 +461,7 @@ public class BattleBoard extends javax.swing.JPanel {
         selfHealtBarThread.start();
         otherHealtBarThread.start();
     }
-    
-    private void setPath(ArrayList<File> files) {
-        SPRITE = "res/sprite";
-        for (File thisFile: files) {
-            switch (thisFile.getName()) {
-                case "kanto.csv": KANTO = thisFile;
-                    break;
-                case "kantoMove.csv": KANTO_MOVE = thisFile;
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-    
+        
     /**
      * It return the trainer which its party's its modifies
      * @return

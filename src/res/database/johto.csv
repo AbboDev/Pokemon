@@ -1,0 +1,101 @@
+n.ID;Name;1 Type;2 Type;1 Ability;2 Ability;Hidden;Evolution;Way;Into;Item;Percentage;HP;ATK;DEF;SP.ATK;SP.DEF;SPEED;EV HP;EV ATK;EV DEF;EV SP.ATK;EV SP.DEF;EV SPEED;Happy;Exp;Max Exp;Gender;Catch
+152;Chikorita;Grass;Grass;Overgrow;Overgrow;Leaf Guard;Level;16;Bayleef;null;null;45;49;65;49;65;45;0;0;0;0;1;0;70;64;1059860;87.5;45
+153;Bayleef;Grass;Grass;Overgrow;Overgrow;Leaf Guard;Level;32;Meganium;null;null;60;62;80;63;80;60;0;0;1;0;1;0;70;141;1059860;87.5;45
+154;Meganium;Grass;Grass;Overgrow;Overgrow;Leaf Guard;null;null;null;null;null;80;82;100;83;100;80;0;0;1;0;2;0;70;208;1059860;87.5;45
+155;Cyndaquil;Fire;Fire;Blaze;Blaze;Flash Fire;Level;14;Quilava;null;null;39;52;43;60;50;65;0;0;0;0;0;1;70;65;1059860;87.5;45
+156;Quilava;Fire;Fire;Blaze;Blaze;Flash Fire;Level;36;Typhlosion;null;null;58;64;58;80;65;80;0;0;0;1;0;1;70;142;1059860;87.5;45
+157;Typhlosion;Fire;Fire;Blaze;Blaze;Flash Fire;null;null;null;null;null;78;84;78;109;85;100;0;0;0;3;0;0;70;209;1059860;87.5;45
+158;Totodile;Water;Water;Torrent;Torrent;Sheer Force;Level;18;Croconaw;null;null;50;65;64;44;48;43;0;1;0;0;0;0;70;66;1059860;87.5;45
+159;Croconaw;Water;Water;Torrent;Torrent;Sheer Force;Level;30;Feraligatr;null;null;65;80;80;59;63;58;0;1;1;0;0;0;70;143;1059860;87.5;45
+160;Feraligatr;Water;Water;Torrent;Torrent;Sheer Force;null;null;null;null;null;85;105;100;79;83;78;0;2;1;0;0;0;70;210;1059860;87.5;45
+161;Sentret;Normal;Normal;Run Away;Keen Eye;Frisk;Level;15;Furret;null;null;35;46;34;35;45;20;0;1;0;0;0;0;70;57;1000000;50;255
+162;Furret;Normal;Normal;Run Away;Keen Eye;Frisk;null;null;null;null;null;85;76;64;45;55;90;0;0;0;0;0;2;70;116;1000000;50;90
+163;Hoothoot;Normal;Flying;Insomnia;Keen Eye;Tinted Lens;Level;20;Noctowl;null;null;60;30;30;36;56;50;1;0;0;0;0;0;70;58;1000000;50;255
+164;Noctowl;Normal;Flying;Insomnia;Keen Eye;Tinted Lens;null;null;null;null;null;100;50;50;76;96;70;2;0;0;0;0;0;70;162;1000000;50;90
+165;Ledyba;Bug;Flying;Swarm;Early Bird;Rattled;Level;18;Ledian;null;null;40;20;30;40;80;55;0;0;0;0;1;0;70;54;800000;50;255
+166;Ledian;Bug;Flying;Swarm;Early Bird;Iron Fist;null;null;null;null;null;55;35;50;55;110;85;0;0;0;0;2;0;70;134;800000;50;90
+167;Spinarak;Bug;Poison;Swarm;Insomnia;Sniper;Level;22;Ariados;null;null;40;60;40;40;40;30;0;1;0;0;0;0;70;54;800000;50;255
+168;Ariados;Bug;Poison;Swarm;Insomnia;Sniper;null;null;null;null;null;70;90;70;60;60;40;0;2;0;0;0;0;70;134;800000;50;90
+169;Crobat;Poison;Flying;Inner Focus;Inner Focus;Infiltrator;null;null;null;null;null;85;90;80;70;80;130;0;0;0;0;0;3;70;204;1000000;50;90
+170;Chinchou;Water;Electric;Volt Absorb;Illuminate;Water Absorb;Level;27;Lanturn;Deep Sea Scale;5;75;38;38;56;56;67;1;0;0;0;0;0;70;90;1250000;50;190
+171;Lanturn;Water;Electric;Volt Absorb;Illuminate;Water Absorb;null;null;null;Deep Sea Scale;5;125;58;58;76;76;67;2;0;0;0;0;0;70;156;1250000;50;75
+172;Pichu;Electric;Electric;Static;Static;Lightning Rod;Happiness;220;Pichaku;null;null;20;40;15;35;35;60;0;0;0;0;0;1;70;42;1000000;50;190
+173;Cleffa;Fairy;Fairy;Cute Charm;Magic Guard;Friend Guard;Happiness;220;Clefairy;null;null;50;25;28;45;55;15;0;0;0;0;1;0;140;37;800000;25;150
+174;Igglybuff;Normal;Fairy;Cute Charm;Competitive;Friend Guard;Happiness;220;Jigglypuff;null;null;90;30;15;40;20;15;1;0;0;0;0;0;70;39;800000;25;170
+175;Togepi;Fairy;Fairy;Hustle;Serene Grace;Super Luck;Happiness;220;Togetic;null;null;35;20;65;40;65;20;0;0;0;0;1;0;70;74;800000;87.5;190
+176;Togetic;Fairy;Flying;Hustle;Serene Grace;Super Luck;Stone;Shiny Stone;Togekiss;null;null;55;40;85;80;105;40;0;0;0;0;2;0;70;114;800000;87.5;75
+177;Natu;Psychic;Flying;Synchronize;Early Bird;Magic Bounce;Level;25;Xatu;null;null;40;50;45;70;45;70;0;0;0;1;0;0;70;73;1000000;50;190
+178;Xatu;Psychic;Flying;Synchronize;Early Bird;Magic Bounce;null;null;null;null;null;65;75;70;95;70;95;0;0;0;1;0;1;70;171;1000000;50;75
+179;Mareep;Electric;Electric;Static;Static;Plus;Level;15;Flaaffy;null;null;55;40;40;65;45;35;0;0;0;1;0;0;70;59;1059860;50;235
+180;Flaaffy;Electric;Electric;Static;Static;Plus;Level;30;Ampharos;null;null;70;55;55;80;60;45;0;0;0;2;0;0;70;117;1059860;50;120
+181;Ampharos;Electric;Electric;Static;Static;Plus;Mega;Ampharosite;Mega Ampharos;null;null;90;75;85;115;90;55;0;0;0;3;0;0;70;194;1059860;50;45
+182;Bellossom;Grass;Grass;Chlorophyll;Chlorophyll;Healer;null;null;null;null;null;75;80;95;90;100;50;0;0;0;0;3;0;70;184;1059860;50;45
+183;Marill;Water;Fairy;Thick Fat;Huge Power;Sap Sipper;Level;18;Azumarill;null;null;70;20;50;20;50;40;2;0;0;0;0;0;70;58;800000;50;190
+184;Azumarill;Water;Fairy;Thick Fat;Huge Power;Sap Sipper;null;null;null;null;null;100;50;80;60;80;50;3;0;0;0;0;0;70;153;800000;50;75
+185;Sudowoodo;Rock;Rock;Sturdy;Rock Head;Rattled;null;null;null;null;null;70;100;115;30;65;30;0;0;2;0;0;0;70;135;1000000;50;65
+186;Politoed;Water;Water;Water Absorb;Damp;Drizzle;null;null;null;King's Rock;5;90;75;75;90;100;70;0;0;0;0;3;0;70;185;1059860;50;45
+187;Hoppip;Grass;Flying;Chlorophyll;Leaf Guard;Infiltrator;Level;18;Skiploom;null;null;35;35;40;35;55;50;0;0;0;0;0;1;70;74;1059860;50;255
+188;Skiploom;Grass;Flying;Chlorophyll;Leaf Guard;Infiltrator;Level;27;Jumpluff;null;null;55;45;50;45;65;80;0;0;0;0;0;2;70;136;1059860;50;120
+189;Jumpluff;Grass;Flying;Chlorophyll;Leaf Guard;Infiltrator;null;null;null;null;null;75;55;70;55;95;110;0;0;0;0;0;3;70;176;1059860;50;45
+190;Aipom;Normal;Normal;Run Away;Pickup;Skill Link;LevelWithMove;Double Hit;Ambipom;null;null;55;70;55;40;55;85;0;0;0;0;0;1;70;94;800000;50;45
+191;Sunkern;Grass;Grass;Chlorophyll;Solar Power;Early Bird;Stone;Sun Stone;Sunflora;null;null;30;30;30;30;30;30;0;0;0;1;0;0;70;52;1059860;50;235
+192;Sunflora;Grass;Grass;Chlorophyll;Solar Power;Early Bird;null;null;null;null;null;75;75;55;105;85;30;0;0;0;2;0;0;70;146;1059860;50;120
+193;Yanma;Bug;Flying;Speed Boost;Compound Eyes;Frisk;LevelWithMove;Ancient Power;Yanmega;null;null;65;65;45;75;45;95;0;0;0;0;0;1;70;147;1000000;50;75
+194;Wooper;Water;Earth;Damp;Water Absorb;Unaware;Level;20;Quagsire;null;null;55;45;45;25;25;15;1;0;0;0;0;0;70;52;1000000;50;255
+195;Quagsire;Water;Earth;Damp;Water Absorb;Unaware;null;null;null;null;null;95;85;85;65;65;35;2;0;0;0;0;0;70;137;1000000;50;90
+196;Espeon;Psychic;Psychic;Synchronize;Synchronize;Magic Bounce;null;null;null;null;null;65;65;60;130;95;110;0;0;0;2;0;0;70;197;1000000;87.5;45
+197;Umbreon;Dark;Dark;Synchronize;Synchronize;Inner Focus;null;null;null;null;null;95;65;110;60;130;65;0;0;0;0;2;0;35;197;1000000;87.5;45
+198;Murkrow;Dark;Flying;Insomnia;Super Luck;Prankster;Stone;Dusk Stone;Honchkrow;null;null;60;85;42;85;42;91;0;0;0;0;0;1;35;107;1059860;50;30
+199;Slowking;Water;Psychic;Oblivious;Own Tempo;Regenerator;null;null;null;King's Rock;5;95;75;80;100;110;30;0;0;0;0;3;0;70;164;1000000;50;70
+200;Misdreavus;Ghost;Ghost;Levitate;Levitate;Levitate;Stone;Dusk Stone;Mismagius;null;null;60;60;60;85;85;85;0;0;0;0;1;0;35;147;800000;50;45
+201;Unown;Psychic;Psychic;Levitate;Levitate;Levitate;null;null;null;null;null;48;72;48;72;48;48;0;1;0;1;0;0;70;61;1000000;null;225
+202;Wobbuffet;Psychic;Psychic;Shadow Tag;Shadow Tag;Telepathy;null;null;null;null;null;190;33;58;33;58;33;2;0;0;0;0;0;70;177;1000000;50;45
+203;Girafarig;Normal;Psychic;Inner Focus;Early Bird;Sap Sipper;null;null;null;null;null;70;80;65;90;65;85;0;0;0;2;0;0;70;149;1000000;50;60
+204;Pineco;Bug;Bug;Sturdy;Sturdy;Overcoat;Level;31;Forretress;null;null;50;65;90;35;35;15;0;0;1;0;0;0;70;60;1000000;50;190
+205;Forretress;Bug;Steel;Sturdy;Sturdy;Overcoat;null;null;null;null;null;75;90;140;60;60;40;0;0;2;0;0;0;70;118;1000000;50;75
+206;Dunsparce;Normal;Normal;Serene Grace;Run Away;Rattled;null;null;null;null;null;100;70;70;65;65;45;1;0;0;0;0;0;70;125;1000000;50;190
+207;Gligar;Earth;Flying;Hyper Cutter;Sand Veil;Immunity;LevelInTime;Razor Fang;Gliscor;null;null;65;75;105;35;65;85;0;0;1;0;0;0;70;108;1059860;50;60
+208;Steelix;Steel;Earth;Rock Head;Sturdy;Sheer Force;Mega;Steelixite;Mega Steelix;null;null;75;85;200;55;65;30;0;0;2;0;0;0;70;196;1000000;50;25
+209;Snubbull;Fairy;Fairy;Intimidate;Run Away;Rattled;Level;23;Granbull;null;null;60;80;50;40;40;30;0;1;0;0;0;0;70;63;800000;25;190
+210;Granbull;Fairy;Fairy;Intimidate;Quick Feet;Rattled;null;null;null;null;null;90;120;75;60;60;45;0;2;0;0;0;0;70;178;800000;25;75
+211;Qwilfish;Water;Poison;Poison Point;Swift Swim;Intimidate;null;null;null;null;null;65;95;75;55;55;85;0;1;0;0;0;0;70;100;1000000;50;45
+212;Scizor;Bug;Steel;Swarm;Technician;Light Metal;Mega;Scizorite;Mega Scizor;null;null;70;130;100;55;80;65;0;2;0;0;0;0;70;200;1000000;50;25
+213;Shuckle;Bug;Rock;Sturdy;Gluttony;Contrary;null;null;null;Berry Juice;100;20;10;230;10;230;5;0;0;1;0;1;0;70;80;1059860;50;190
+214;Heracross;Bug;Fighting;Swarm;Guts;Moxie;Mega;Heracrossite;Mega Heracross;null;null;80;125;75;40;95;85;0;2;0;0;0;0;70;200;1250000;50;45
+215;Sneasel;Dark;Ice;Inner Focus;Keen Eye;Pickpocket;LevelInTime;Razor Claw;Weavile;Grip Claw§Quick Claw;50§5;55;95;55;35;75;115;0;0;0;0;0;1;35;132;1059860;50;60
+216;Teddiursa;Normal;Normal;Pickup;Quick Feet;Honey Gather;Level;30;Ursaring;null;null;60;80;50;50;50;40;0;1;0;0;0;0;70;124;1000000;50;120
+217;Ursaring;Normal;Normal;Guts;Quick Feet;Unnerve;null;null;null;null;null;90;130;75;75;75;55;0;2;0;0;0;0;70;189;1000000;50;60
+218;Slugma;Fire;Fire;Magma Armor;Flame Body;Weak Armor;Level;38;Magcargo;null;null;40;40;40;70;40;20;0;0;0;1;0;0;70;78;1000000;50;190
+219;Magcargo;Fire;Rock;Magma Armor;Flame Body;Weak Armor;null;null;null;null;null;50;50;120;80;80;30;0;0;2;0;0;0;70;154;1000000;50;75
+220;Swinub;Ice;Earth;Oblivious;Snow Cloak;Thick Fat;Level;33;Piloswine;null;null;50;50;40;30;30;50;0;1;0;0;0;0;70;78;1250000;50;225
+221;Piloswine;Ice;Earth;Oblivious;Snow Cloak;Thick Fat;LevelWithMove;Ancient Power;Mamoswine;null;null;100;100;80;60;60;50;1;1;0;0;0;0;70;160;1250000;50;75
+222;Corsola;Water;Rock;Hustle;Natural Cure;Regenerator;null;null;null;Luminous Moss§Hard Stone;5§5;55;55;85;65;85;35;0;0;1;0;1;0;70;113;800000;25;60
+223;Remoraid;Water;Water;Hustle;Sniper;Moody;Level;25;Octillery;null;null;35;65;35;65;35;65;0;0;0;1;0;0;70;78;1000000;50;190
+224;Octillery;Water;Water;Suction Cups;Sniper;Moody;null;null;null;null;null;75;105;75;105;75;45;0;1;0;1;0;0;70;164;1000000;50;75
+225;Delibird;Ice;Flying;Vital Spirit;Hustle;Insomnia;null;null;null;null;null;45;55;45;65;45;75;0;0;0;0;0;1;70;183;800000;50;45
+226;Mantine;Water;Flying;Swift Swim;Water Absorb;Water Veil;null;null;null;null;null;65;40;70;80;140;70;0;0;0;0;2;0;70;168;1250000;50;25
+227;Skarmory;Steel;Flying;Keen Eye;Sturdy;Weak Armor;null;null;null;Metal Coat;5;65;80;140;40;70;70;0;0;2;0;0;0;70;168;1250000;50;25
+228;Houndour;Dark;Fire;Early Bird;Flash Fire;Unnerve;Level;24;Houndoom;null;null;45;60;30;80;50;65;0;0;0;1;0;0;35;114;1250000;50;120
+229;Houndoom;Dark;Fire;Early Bird;Flash Fire;Unnerve;Mega;Houndoomite;Mega Houndoom;null;null;75;90;50;110;80;95;0;0;0;2;0;0;35;204;1250000;50;45
+230;Kingdra;Water;Dragon;Swift Swim;Sniper;Damp;null;null;null;null;null;75;95;95;95;95;85;0;1;0;1;1;0;70;207;1000000;50;45
+231;Phanpy;Earth;Earth;Pickup;Pickup;Sand Veil;Level;25;Donphan;null;null;90;60;60;40;40;40;1;0;0;0;0;0;70;124;1000000;50;120
+232;Donphan;Earth;Earth;Sturdy;Sturdy;Sand Veil;null;null;null;null;null;90;120;120;60;60;50;0;1;1;0;0;0;70;189;1000000;50;60
+233;Porygon2;Normal;Normal;Trace;Download;Analytic;SwitchWithItem;Dubious Disc;Porygon-Z;null;null;85;80;90;105;95;60;0;0;0;2;0;0;70;180;1000000;null;45
+234;Stantler;Normal;Normal;Intimidate;Frisk;Sap Sipper;null;null;null;null;null;73;95;62;85;65;85;0;1;0;0;0;0;70;165;1250000;50;45
+235;Smeargle;Normal;Normal;Own Tempo;Technician;Moody;null;null;null;null;null;55;20;35;20;45;75;0;0;0;0;0;1;70;106;800000;50;45
+236;Tyrogue;Fighting;Fighting;Guts;Steadfast;Vital Spirit;Level;20;Hitmon;null;null;35;35;35;35;35;35;0;1;0;0;0;0;70;91;1000000;100;75
+237;Hitmontop;Fighting;Fighting;Intimidate;Technician;Steadfast;null;null;null;null;null;50;95;95;35;110;70;0;0;0;0;2;0;70;138;1000000;100;45
+238;Smoochum;Ice;Psychic;Oblivious;Forewarn;Hydration;Level;30;Jinx;null;null;45;30;15;85;65;65;0;0;0;1;0;0;70;87;1000000;0;45
+239;Elekid;Electric;Electric;Static;Static;Vital Spirit;Level;30;Electabuzz;Electirizer;5;45;63;37;65;55;95;0;0;0;0;0;1;70;106;1000000;75;45
+240;Magby;Fire;Fire;Flame Body;Flame Body;Vital Spirit;Level;30;Magmar;Magmarizer;5;45;75;37;70;55;83;0;0;0;0;0;1;70;117;1000000;75;45
+241;Miltank;Normal;Normal;Thick Fat;Scrappy;Sap Sipper;null;null;null;Moomoo Milk;100;95;80;105;40;70;100;0;0;2;0;0;0;70;200;1250000;0;45
+242;Blissey;Normal;Normal;Natural Cure;Serene Grace;Healer;null;null;null;null;null;255;10;10;75;135;55;3;0;0;0;0;0;140;608;800000;0;30
+243;Raikou;Electric;Electric;Pressure;Pressure;Volt Absorb;null;null;null;null;null;90;85;75;115;100;115;0;0;0;1;0;2;35;216;1250000;null;3
+244;Entei;Fire;Fire;Pressure;Pressure;Flash Fire;null;null;null;null;null;115;115;85;90;75;100;1;2;0;0;0;0;35;217;1250000;null;3
+245;Suicune;Water;Water;Pressure;Pressure;Water Absorb;null;null;null;null;null;100;75;115;90;115;85;0;0;1;0;2;0;35;215;1250000;null;3
+246;Larvitar;Rock;Earth;Guts;Guts;Sand Veil;Level;30;Pupitar;null;null;50;64;50;45;50;41;0;1;0;0;0;0;35;67;1250000;50;45
+247;Pupitar;Rock;Earth;Shed Skin;Shed Skin;Sand Veil;Level;55;Tyranitar;null;null;70;84;70;65;70;51;0;2;0;0;0;0;35;144;1250000;50;45
+248;Tyranitar;Rock;Dark;Sand Stream;Sand Stream;Unnerve;Mega;Tyranitarite;Mega Tyranitar;null;null;100;134;110;95;100;61;0;3;0;0;0;0;35;218;1250000;50;45
+249;Lugia;Psychic;Flying;Pressure;Pressure;Multiscale;null;null;null;null;null;106;90;130;90;154;110;0;0;0;0;3;0;0;220;1250000;null;3
+250;Ho-Oh;Fire;Flying;Pressure;Pressure;Regenerator;null;null;null;Sacred Ash;100;106;130;90;110;154;90;0;0;0;0;3;0;0;220;1250000;null;3
+251;Celebi;Psychic;Grass;Natural Cure;Natural Cure;Natural Cure;null;null;null;Lum Berry;100;100;100;100;100;100;100;3;0;0;0;0;0;100;64;1059860;null;45
