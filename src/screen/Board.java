@@ -4,9 +4,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import javax.swing.UIManager.LookAndFeelInfo;
 import object.Pokemon;
 import object.Trainer;
@@ -18,37 +16,17 @@ public class Board extends JFrame {
 
     private static final long serialVersionUID = 1L;
 //    private static String OS = System.getProperty("os.name").toLowerCase();
+//    private static String ROOT = System.getProperty("user.dir");
     
     public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
         
-        ClassLoader classLoader = getClass().getClassLoader();
-        
-        String ROOT = System.getProperty("user.dir");
-        
-        File KANTO, KANTO_MOVE;
-        File JOHTO, JOHTO_MOVE;
-        ArrayList<File> file = new ArrayList<>();
-        
-        KANTO = new File(classLoader.getResource("res/database/kanto.csv").getFile());
-        KANTO_MOVE = new File(classLoader.getResource("res/database/kantoMove.csv").getFile());
-        JOHTO = new File(classLoader.getResource("res/database/johto.csv").getFile());
-        JOHTO_MOVE = new File(classLoader.getResource("res/database/johtoMove.csv").getFile());
-            
-        System.out.println(KANTO.getAbsolutePath());
-        System.out.println(KANTO_MOVE.getAbsolutePath());
-
-        file.add(KANTO);
-        file.add(KANTO_MOVE);
-        file.add(JOHTO);
-        file.add(JOHTO_MOVE);
-        
-        Pokemon gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon charizard = new Pokemon(KANTO, KANTO_MOVE, 6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon mewtwo = new Pokemon(KANTO, KANTO_MOVE, 150, 15, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon umbreon = new Pokemon(JOHTO, JOHTO_MOVE, 197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon ampharos = new Pokemon(JOHTO, JOHTO_MOVE, 181, 80, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon shuckle = new Pokemon(JOHTO, JOHTO_MOVE, 213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon umbreon = new Pokemon(197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon ampharos = new Pokemon(181, 1, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon shuckle = new Pokemon(213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         mainCharacter.getParty().addPkmnToParty(gyarados);
         mainCharacter.getParty().addPkmnToParty(mewtwo);
         mainCharacter.getParty().addPkmnToParty(charizard);
@@ -56,12 +34,12 @@ public class Board extends JFrame {
         mainCharacter.getParty().addPkmnToParty(ampharos);
         mainCharacter.getParty().addPkmnToParty(shuckle);
         
-        Pokemon enemy = new Pokemon(KANTO, KANTO_MOVE, 43, 36, true, null, null);
+        Pokemon enemy = new Pokemon(43, 36, true, null, null);
         
         putUI();
         
-        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy, ROOT, file);
-        final StatsBoard statsBoard = new StatsBoard(mainCharacter, ROOT, file);
+        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy);
+        final StatsBoard statsBoard = new StatsBoard(mainCharacter);
         
         final JFrame frame = new GameFrame("Test");
         frame.addKeyListener(new KeyListener() {
@@ -188,8 +166,6 @@ public class Board extends JFrame {
                     break;
                 }
             }
-            
-//            UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { }
     }
 

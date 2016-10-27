@@ -72,26 +72,21 @@ public class Move {
     private boolean canInfatuated = false;
     
     private String name;
+    public static File MOVES;
     
-    public Move (File csvMoves, String searchName) {
-        String pathMove = null;
-        File fileMove = null;
-        if (csvMoves != null) {
-            pathMove = csvMoves.getPath();
-        } else {
-            ClassLoader classLoader = getClass().getClassLoader();
-            fileMove = new File(classLoader.getResource("res/database/move.csv").getFile());
-        }
+    private void assignFile() {
+        ClassLoader classLoader = getClass().getClassLoader();
+        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
+    }
+    
+    public Move (String searchName) {
+        assignFile();
         BufferedReader bufferStats = null;
         String split = ";", splitMultiple = "§";
         String identifierFixD = "*", idientifierNull = "o";
         try {
             String line;
-            if (pathMove != null) {
-                bufferStats = new BufferedReader(new FileReader(pathMove));
-            } else {
-                bufferStats = new BufferedReader(new FileReader(fileMove));
-            }
+            bufferStats = new BufferedReader(new FileReader(MOVES));
             while ((line = bufferStats.readLine()) != null) {
                 String[] currentLine = line.split(split);
                 if (currentLine[0].equals(searchName)) {

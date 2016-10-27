@@ -20,8 +20,7 @@ import object.Trainer;
  * @author Thomas
  */
 public class StatsBoard extends javax.swing.JPanel {
-    public String ROOT, SPRITE;
-    public File KANTO, KANTO_MOVE;
+    public static final String SPRITE = "res/sprite";
     
     private Trainer self;
     private int pkmnIndex = 0;
@@ -34,26 +33,11 @@ public class StatsBoard extends javax.swing.JPanel {
      * @param files
      * @throws java.io.IOException
      */    
-    public StatsBoard(Trainer self, String ROOT, ArrayList<File> files) throws IOException {
+    public StatsBoard(Trainer self) throws IOException {
         initComponents();
-        this.ROOT = ROOT;
-        setPath(files);
         this.self = self;
         
         refresh();
-    }
-    private void setPath(ArrayList<File> files) {
-        SPRITE = "res/sprite";
-        for (File thisFile: files) {
-            switch (thisFile.getName()) {
-                case "kanto.csv": KANTO = thisFile;
-                    break;
-                case "kantoMove.csv": KANTO_MOVE = thisFile;
-                    break;
-                default:
-                    break;
-            }
-        }
     }
     
     /**
@@ -1080,7 +1064,7 @@ public class StatsBoard extends javax.swing.JPanel {
                     int index = 0;
                     Pokemon gyarados = null;
                     while (isShiny == false) {
-                        gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 100, false, self.getHexID(), self.getOctID());
+                        gyarados = new Pokemon(130, 100, false, self.getHexID(), self.getOctID());
                         printMove(gyarados);
                         printInBattleStats(gyarados);
                         printStats(gyarados);
@@ -1100,7 +1084,7 @@ public class StatsBoard extends javax.swing.JPanel {
 
     private void NewActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_NewActionPerformed
         try {
-            Pokemon gyarados = new Pokemon(KANTO, KANTO_MOVE, 130, 100, false, self.getHexID(), self.getOctID());
+            Pokemon gyarados = new Pokemon(130, 100, false, self.getHexID(), self.getOctID());
             self.getParty().addPkmnToParty(gyarados);
             pkmnIndex = self.getParty().getSize()-1;
             printMove(gyarados);

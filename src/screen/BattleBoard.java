@@ -9,7 +9,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import javax.swing.JLabel;
@@ -26,15 +25,12 @@ import object.Trainer;
  */
 public class BattleBoard extends javax.swing.JPanel {
     private static final long serialVersionUID = -6244437515781556464L;
-    public String ROOT;
     public static final String SPRITE = "res/sprite";
-//    public File KANTO, KANTO_MOVE;
     private final static int CURRENT_PKMN = 0;
     private final static int ANIMATION_DELAY = 150;
     private final static int BAR_DELAY = 30;
     
-//    private static String OS = System.getProperty("os.name").toLowerCase();
-    private static Move switchMove = new Move(Pokemon.MOVES, "Switch");
+    private static Move switchMove = new Move("Switch");
     
     private final BattleEngine battleEngine;
     private Thread battleThread;
@@ -62,7 +58,6 @@ public class BattleBoard extends javax.swing.JPanel {
     private boolean selfHit, otherHit;
     private int selfDamage, otherDamage;
     private int selfHP, otherHP;
-//    private Pokemon.Status selfStatus, otherStatus;
     
     /**
      * Creates new form BattleBoard
@@ -71,7 +66,7 @@ public class BattleBoard extends javax.swing.JPanel {
      * @param files
      * @throws java.io.IOException
      */    
-    public BattleBoard(Trainer self, Pokemon pkmn, String ROOT, ArrayList<File> files) throws IOException {
+    public BattleBoard(Trainer self, Pokemon pkmn) throws IOException {
         firstTurn = true;
         playBattle = false;
         pkmnChoose = false;
@@ -85,8 +80,6 @@ public class BattleBoard extends javax.swing.JPanel {
         selfSwitchedPkmn = null;
         
         initComponents();
-        this.ROOT = ROOT;
-//        setPath(files);
         this.self = self;
         isTrainer = false;
         
@@ -95,17 +88,11 @@ public class BattleBoard extends javax.swing.JPanel {
         battleEngine = new BattleEngine(2, null, null, false);
         otherHP = otherPokemon.getHP();
         selfHP = selfPokemon.getHP();
-//        selfStatus = selfPokemon.getStatus();
-//        otherStatus = otherPokemon.getStatus();
         
         printAll();
         decleareThread();
         
-//        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
-//        OptionPanel.add(label);
-//        OptionPanel.revalidate();
         BattleTab.revalidate();
-//        OptionPanel.repaint();
         BattleTab.repaint();
     }
     /**
@@ -116,7 +103,7 @@ public class BattleBoard extends javax.swing.JPanel {
      * @param files
      * @throws java.io.IOException
      */    
-    public BattleBoard(Trainer self, Trainer enemy, String ROOT, ArrayList<File> files) throws IOException {
+    public BattleBoard(Trainer self, Trainer enemy) throws IOException {
         firstTurn = true;
         playBattle = false;
         pkmnChoose = false;
@@ -130,8 +117,6 @@ public class BattleBoard extends javax.swing.JPanel {
         selfSwitchedPkmn = null;
         
         initComponents();
-        this.ROOT = ROOT;
-//        setPath(files);
         this.self = self;
         this.enemy = enemy;
         isTrainer = true;
@@ -145,11 +130,7 @@ public class BattleBoard extends javax.swing.JPanel {
         printAll();
         decleareThread();
         
-//        JLabel label = new JLabel(ROOT+" "+KANTO_MOVE+" "+SPRITE);
-//        OptionPanel.add(label);
-//        OptionPanel.revalidate();
         BattleTab.revalidate();
-//        OptionPanel.repaint();
         BattleTab.repaint();
     }
     

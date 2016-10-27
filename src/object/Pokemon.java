@@ -194,13 +194,15 @@ public class Pokemon {
     
     private Random rand = new Random();
     private int random;
-    public static File MOVES;
-    private static String OS = System.getProperty("os.name").toLowerCase();
     
-    private void setMovesDir() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
-    }
+    private final ClassLoader classLoader = getClass().getClassLoader();
+    public static File KANTO;
+    public static File KANTO_MOVE;
+    public static File JOHTO;
+    public static File JOHTO_MOVE;
+    public static File MOVES;
+
+    private static String OS = System.getProperty("os.name").toLowerCase();
     
     public Pokemon() {
         firstType = null;
@@ -213,22 +215,36 @@ public class Pokemon {
         name = null;
         surname = null;
         nameOfTrainer = null;
-        setMovesDir();
+        assignFile();
+    }
+    
+    private void assignFile() {
+        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
+        KANTO = new File(classLoader.getResource("res/database/kanto.csv").getFile());
+        KANTO_MOVE = new File(classLoader.getResource("res/database/kantoMove.csv").getFile());
+        JOHTO = new File(classLoader.getResource("res/database/johto.csv").getFile());
+        JOHTO_MOVE = new File(classLoader.getResource("res/database/johtoMove.csv").getFile());
     }
     
     //Create a random Pokemon from .CSV
-    public Pokemon(File csvStatsRegion, File csvMovesRegion, int ID, int level,
-            boolean wild, String trainerIDhex, String trainerIDoct) {
-        setMovesDir();
-        String pathStat = csvStatsRegion.getPath();
+    public Pokemon(int ID, int level, boolean wild, String trainerIDhex, String trainerIDoct) {
+        assignFile();
+        this.ID = ID;
+        File csvStats = null, csvMoves = null;
+        if (ID >= 1 && ID <= 151) {
+            csvStats = KANTO;
+            csvMoves = KANTO_MOVE;
+        } else {
+            csvStats = JOHTO;
+            csvMoves = JOHTO_MOVE;
+        }
         BufferedReader bufferStats = null;
-        String line, split = ";", splitMultiple = "§";
+        String line, split = ";", splitMultiple = "@";
         try {
-            bufferStats = new BufferedReader(new FileReader(pathStat));
+            bufferStats = new BufferedReader(new FileReader(csvStats));
             while ((line = bufferStats.readLine()) != null ) {
                 String[] currentLine = line.split(split);
                 if (currentLine[0].equals(String.valueOf(ID))) {
-                    this.ID = parseInteger(currentLine[0]);
                     name = currentLine[1];
                     surname = name;
                     firstType = setType(currentLine[2]);
@@ -362,7 +378,7 @@ public class Pokemon {
                     randomNature(random);
                     generateIV();
                     assignStat();
-                    assignMove(csvMovesRegion);
+                    assignMove(csvMoves);
                 }
             }
         } catch(FileNotFoundException e) {} catch (IOException e) {}
@@ -387,55 +403,33 @@ public class Pokemon {
         levelSpDef = 0;
         levelSpd = 0;
     }
-    public final void assignMove(File csvMovesRegion) {
-        String pathMove = csvMovesRegion.getPath();
-        BufferedReader bufferMove = null;
+    public final void assignMove(File csvMoves) throws IOException {
         String line, split = ";", splitMove = "#";
-        try {
-            HashMap<String, Integer> unsortMap = new HashMap<>();
-//            BidiMap<String, Integer> unsortMap = new DualHashBidiMap<>();
-            bufferMove = new BufferedReader(new FileReader(pathMove));
-            while ((line = bufferMove.readLine()) != null ) {
-                String[] currentLine = line.split(split);
-                if (currentLine[0].equals(String.valueOf(ID))) {
-                    for (int i = 1; i < currentLine.length; ++i) {
-                        String[] word = currentLine[i].split(splitMove);
-                        String move = word[0];
-                        Integer levelOfMove = parseInteger(word[1]);
-                        unsortMap.put(move, levelOfMove);
-                    }
+        ArrayList<String> allMoves = new ArrayList<>();
+        BufferedReader bufferMove = null;
+        
+        bufferMove = new BufferedReader(new FileReader(csvMoves));
+        while ((line = bufferMove.readLine()) != null) {
+            String[] currentLine = line.split(split);
+            if (currentLine[0].equals(String.valueOf(ID))) {
+                for (int i = currentLine.length; i > 1; --i) {
+                    allMoves.add(currentLine[i-1]);
                 }
             }
-            moveLevel = sortByValue(unsortMap);
-            ArrayList<Integer> move = new ArrayList<>(moveLevel.values());
-            for(int i = move.size()-1; i >= 0; --i){
-                Integer integer = move.get(i);
-                if (moveSet.size() < MAX_MOVES) {
-                    if (integer <= this.level) {
-//                        if (!moveSet.contains(moveLevel.getKey(integer))) {
-//                            moveSet.add(0, new Move(MOVES, moveLevel.getKey(integer)));
-                        if (!moveSet.contains(getKeyByValue(moveLevel, integer))) {
-                            moveSet.add(0, new Move(MOVES, getKeyByValue(moveLevel, integer)));
-                        }
+        }
+        for (int y = 0; y < allMoves.size(); ++y) {
+            String[] currentMove = allMoves.get(y).split(splitMove);
+            if (parseInteger(currentMove[1]) <= this.getLevel()) {
+                if (moveSet.size() < 6) {
+                    if (!moveSet.contains(new Move(currentMove[0]))) {
+                        moveSet.add(0, new Move(currentMove[0]));
                     }
-                } else { break; }
-            }
-        } catch (FileNotFoundException ex) {} catch (IOException ex) {}
-        finally {
-            if (bufferMove != null) {
-                try { bufferMove.close(); } catch (IOException e) {}
+                } else {
+                    break;
+                }
             }
         }
     }
-    public static <T, E> T getKeyByValue(Map<T, E> map, E value) {
-        for (Entry<T, E> entry : map.entrySet()) {
-            if (Objects.equals(value, entry.getValue())) {
-                return entry.getKey();
-            }
-        }
-        return null;
-    }
-    
     /**
      * Increase or decrease the int stat
      * Attack, Defense, Sp Attack, Sp Defense, Speed
@@ -678,7 +672,7 @@ public class Pokemon {
     public ArrayList<Move> getMoveSet() { return moveSet; }
     public int getNumberOfMoves() { return moveSet.size(); }
     public Move getRandomMove(boolean morePP, int usedPP) {
-        if (useStruggle()) return new Move(MOVES, "Struggle");
+        if (useStruggle()) return new Move("Struggle");
         random = rand.nextInt((moveSet.size() - 1) + 1) + 1;
         while (moveSet.get(random-1).getPP() <= 0) {
             random = rand.nextInt((moveSet.size() - 1) + 1) + 1;
@@ -694,7 +688,7 @@ public class Pokemon {
     }
     public String getNameOfMoves(int index) { return moveSet.get(index).toString(); }
     public Move getMoves(String name) {
-        if (moveSet.contains(name)) {
+        if (moveSet.contains(new Move(name))) {
             return moveSet.get(moveSet.indexOf(name));
         } else {
             return null;
@@ -760,7 +754,6 @@ public class Pokemon {
     
     public ImageIcon getSprite(String path, int width, int height, boolean mirror, boolean sex) {
         String imagePath = getImagePath(path, sex);
-//        System.out.println(imagePath);
         BufferedImage image = loadImage(imagePath);
         ImageIcon imageIcon;
         if (!mirror) {
@@ -793,7 +786,6 @@ public class Pokemon {
     }
     private BufferedImage loadImage(String path) {
         BufferedImage buff;
-        ClassLoader classLoader = getClass().getClassLoader();
         try {
             buff = ImageIO.read(classLoader.getResourceAsStream(path));
         } catch (IOException e) {
@@ -1111,33 +1103,7 @@ public class Pokemon {
         }
         return tempEvo;
     }
-    
-    //Thanks to https://www.mkyong.com/java/how-to-sort-a-map-in-java/
-    private static HashMap<String, Integer> sortByValue(HashMap<String, Integer> unsortMap) {
-//    private static BidiMap<String, Integer> sortByValue(BidiMap<String, Integer> unsortMap) {
-        // 1. Convert Map to List of Map
-        List<Map.Entry<String, Integer>> list =
-                new LinkedList<>(unsortMap.entrySet());
-
-        // 2. Sort list with Collections.sort(), provide a custom Comparator
-        //    Try switch the o1 o2 position for a different order
-        Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
-            @Override
-            public int compare(Map.Entry<String, Integer> o1,
-                               Map.Entry<String, Integer> o2) {
-                return (o1.getValue()).compareTo(o2.getValue());
-            }
-        });
-
-        // 3. Loop the sorted list and put it into a new insertion order Map LinkedHashMap
-        HashMap<String, Integer> sortedMap = new LinkedHashMap<>();
-//        BidiMap<String, Integer> sortedMap = new DualLinkedHashBidiMap<>();
-        for (Map.Entry<String, Integer> entry : list) {
-            sortedMap.put(entry.getKey(), entry.getValue());
-        }
-        return sortedMap;
-    }
-}
+} 
 /**
  * This class return an instance of image
  * which is horizontaly flip
