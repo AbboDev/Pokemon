@@ -21,7 +21,8 @@ public class Board extends JFrame {
     public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
         
-        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+//        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon gyarados = new Pokemon(162, 18, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon umbreon = new Pokemon(197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
@@ -38,10 +39,10 @@ public class Board extends JFrame {
         Trainer rival = new Trainer();
         Pokemon gengar = new Pokemon(94, 70, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon ariados = new Pokemon(168, 40, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon persian = new Pokemon(53, 32, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon persian = new Pokemon(53, 20, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        rival.getParty().addPkmnToParty(persian);
         rival.getParty().addPkmnToParty(gengar);
         rival.getParty().addPkmnToParty(ariados);
-        rival.getParty().addPkmnToParty(persian);
         
         putUI();
         

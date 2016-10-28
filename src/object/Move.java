@@ -180,6 +180,7 @@ public class Move {
                         hitMax = parseInteger(hit[1]);
                     } else {
                         hitMin = parseInteger(currentLine[17]);
+                        hitMax = hitMin;
                     }
                     
                     if (currentLine.length > 18) {

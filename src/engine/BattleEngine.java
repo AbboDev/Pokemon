@@ -30,7 +30,7 @@ public class BattleEngine {
     private final Arena arena;
     private int round;
 //    private int pkmn1Round, pkmn2Round;
-    private int pkmn1Recoil, pkmn2Recoil;
+    private int playerPkmnRecoil, enemyPkmnRecoil;
     private final boolean isTrainer;
     private final Random rand;
 
@@ -77,8 +77,8 @@ public class BattleEngine {
      *
      * @return
      */
-    public ArrayList<Pokemon> firstMove(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
-        changeOrder(pkmn1, move1, pkmn2, move2);
+    public ArrayList<Pokemon> firstMove(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
+        changeOrder(playerPkmn, playerMove, enemyPkmn, enemyMove);
         resetDamage();
         
         action(orderOfAttack.get(0), orderOfAttack.get(1), moveOrder.get(0));
@@ -91,8 +91,8 @@ public class BattleEngine {
      * @param pkmn2
      * @return
      */
-    public ArrayList<Pokemon> secondMove(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
-        changeOrder(pkmn1, move1, pkmn2, move2);
+    public ArrayList<Pokemon> secondMove(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
+        changeOrder(playerPkmn, playerMove, enemyPkmn, enemyMove);
         resetDamage();
         
         action(orderOfAttack.get(1), orderOfAttack.get(0), moveOrder.get(1));
@@ -122,57 +122,77 @@ public class BattleEngine {
         damage = 0;
     }
     
-    public void changeOrder(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
-        if (pkmn1 != null) {
-            orderOfAttack.remove(0);
-            orderOfAttack.add(0, pkmn1);
+    public void changeOrder(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
+        if (playerPkmn != null) {
+            if (isFirst(playerPkmn)) {
+                moveOrder.remove(0);
+                moveOrder.add(0, playerMove);
+            } else {
+                moveOrder.remove(1);
+                moveOrder.add(1, playerMove);
+            }
         }
-        if (pkmn2 != null) {
-            orderOfAttack.remove(1);
-            orderOfAttack.add(1, pkmn2);
+        if (enemyPkmn != null) {
+            if (isFirst(enemyPkmn)) {
+                moveOrder.remove(0);
+                moveOrder.add(0, enemyMove);
+            } else {
+                moveOrder.remove(1);
+                moveOrder.add(1, enemyMove);
+            }
         }
-        if (move1 != null) {
-            moveOrder.remove(0);
-            moveOrder.add(0, move1);
+    }
+    
+    private boolean isFirst(Pokemon pkmn) {
+        if (pkmn == orderOfAttack.get(0)) {
+            return true;
         }
-        if (move2 != null) {
-            moveOrder.remove(1);
-            moveOrder.add(1, move2);
-        }
+        return false;
     }
 
     private void action(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
-        if (pkmnATK.getStatus() != Pokemon.Status.KO) {
-            if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) pkmnATK.setStatus(Pokemon.Status.OK);
-            if (pkmnATK.getRoundCNF() == 0) pkmnATK.setIfConfused(false);
+        int n = move.getHitMin();
+        if (move.getHitMin() > 1) {
+            if (move.getHitMax() != move.getHitMin()) {
+                n = rand.nextInt((((move.getHitMax() - move.getHitMin()))+1)+move.getHitMin());
+                System.out.println(n+"");
+            }
+        }
+        while (n > 0) {
+            if (pkmnATK.getStatus() != Pokemon.Status.KO) {
+                if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) pkmnATK.setStatus(Pokemon.Status.OK);
+                if (pkmnATK.getRoundCNF() == 0) pkmnATK.setIfConfused(false);
 
-            if (!canAttackIfFrozen(pkmnATK)) {
-                System.out.println(pkmnATK.getSurname() + " is frozen solid!");
-            } else if (!canAttackIfParalyzed(pkmnATK)) {
-                System.out.println(pkmnATK.getSurname() + " is paralyzed!");
-            } else if (!canAttackIfInfatuated(pkmnATK)) {
-                System.out.println(pkmnATK.getSurname()+" is infatuated of "+pkmnDEF.getSurname());
-            } else if (pkmnATK.getStatus() == Pokemon.Status.Asleep) {
-                System.out.println(pkmnATK.getSurname()+" is sleeping...");
-            } else if (pkmnATK.getIfFlinched()) {
-                System.out.println(pkmnATK.getSurname()+" flinched!");
-            } else {
-                if (canAttackIfConfused(pkmnATK)) {
-                    if (!"Switch".equals(move.getName())) {
-                        System.out.println(pkmnATK.getSurname() + " use " + move.getName());
-                    }
+                if (!canAttackIfFrozen(pkmnATK)) {
+                    System.out.println(pkmnATK.getSurname() + " is frozen solid!"); break;
+                } else if (!canAttackIfParalyzed(pkmnATK)) {
+                    System.out.println(pkmnATK.getSurname() + " is paralyzed!"); break;
+                } else if (!canAttackIfInfatuated(pkmnATK)) {
+                    System.out.println(pkmnATK.getSurname()+" is infatuated of "+pkmnDEF.getSurname()); break;
+                } else if (pkmnATK.getStatus() == Pokemon.Status.Asleep) {
+                    System.out.println(pkmnATK.getSurname()+" is sleeping..."); break;
+                } else if (pkmnATK.getIfFlinched()) {
+                    System.out.println(pkmnATK.getSurname()+" flinched!"); break;
+                } else {
+                    if (canAttackIfConfused(pkmnATK)) {
+                        if (!"Switch".equals(move.getName())) {
+                            System.out.println(pkmnATK.getSurname() + " use " + move.getName());
+                        }
 
-                    if (move.getType() != Move.TypeOfAttacks.Status) {
-                        damage = calcDamage(pkmnATK, pkmnDEF, move);
-                        System.out.println(pkmnDEF.getSurname() + " loses " + damage);
-                        pkmnDEF.takeDamage(damage);
+                        if (move.getType() != Move.TypeOfAttacks.Status) {
+                            damage = calcDamage(pkmnATK, pkmnDEF, move);
+                            System.out.println(pkmnDEF.getSurname() + " loses " + damage);
+                            pkmnDEF.takeDamage(damage);
+                        }
+                        calcEffect(pkmnATK, pkmnDEF, move);
+                        setWeather(move);
+                        --n;
+                    } else if (!canAttackIfConfused(pkmnATK)) {
+                        damage = takeRecoilFromConfusion(pkmnATK);
+                        pkmnATK.takeDamage(damage);
+                        System.out.println(pkmnATK.getSurname() + " hit itself on its confusion!");
+                        break;
                     }
-                    calcEffect(pkmnATK, pkmnDEF, move);
-                    setWeather(move);
-                } else if (!canAttackIfConfused(pkmnATK)) {
-                    damage = takeRecoilFromConfusion(pkmnATK);
-                    pkmnATK.takeDamage(damage);
-                    System.out.println(pkmnATK.getSurname() + " hit itself on its confusion!");
                 }
             }
         }
@@ -200,52 +220,52 @@ public class BattleEngine {
         return null;
     }
 
-    private void calcSpeedPriority2(Pokemon pkmn1, Move move1, Pokemon pkmn2, Move move2) {
-        System.out.println(pkmn1.getSurname()+":"+pkmn1.getHP()+" - "+pkmn2.getSurname()+":"+pkmn2.getHP());
-        int pkmnSPD1 = pkmn1.getTempSpd();
-        if (pkmn1.getStatus() == Pokemon.Status.Paralysis) {
+    private void calcSpeedPriority2(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
+        System.out.println(playerPkmn.getSurname()+":"+playerPkmn.getHP()+" - "+enemyPkmn.getSurname()+":"+enemyPkmn.getHP());
+        int pkmnSPD1 = playerPkmn.getTempSpd();
+        if (playerPkmn.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD1 /= 4;
         }
-        int pkmnSPD2 = pkmn2.getTempSpd();
-        if (pkmn2.getStatus() == Pokemon.Status.Paralysis) {
+        int pkmnSPD2 = enemyPkmn.getTempSpd();
+        if (enemyPkmn.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD2 /= 4;
         }
-        if (move1.getPriority() == move2.getPriority()) {
+        if (playerMove.getPriority() == enemyMove.getPriority()) {
             if (pkmnSPD1 > pkmnSPD2) {
-                orderOfAttack.add(pkmn1);
-                moveOrder.add(move1);
-                orderOfAttack.add(pkmn2);
-                moveOrder.add(move2);
+                orderOfAttack.add(playerPkmn);
+                moveOrder.add(playerMove);
+                orderOfAttack.add(enemyPkmn);
+                moveOrder.add(enemyMove);
             } else if (pkmnSPD1 < pkmnSPD2) {
-                orderOfAttack.add(pkmn2);
-                moveOrder.add(move2);
-                orderOfAttack.add(pkmn1);
-                moveOrder.add(move1);
+                orderOfAttack.add(enemyPkmn);
+                moveOrder.add(enemyMove);
+                orderOfAttack.add(playerPkmn);
+                moveOrder.add(playerMove);
             } else if (pkmnSPD1 == pkmnSPD2) {
                 int random = rand.nextInt((100 - 1) + 1) + 1;
                 if (random >= 50 && random < 100) {
-                    orderOfAttack.add(pkmn2);
-                    moveOrder.add(move2);
-                    orderOfAttack.add(pkmn1);
-                    moveOrder.add(move1);
+                    orderOfAttack.add(enemyPkmn);
+                    moveOrder.add(enemyMove);
+                    orderOfAttack.add(playerPkmn);
+                    moveOrder.add(playerMove);
                 } else {
-                    orderOfAttack.add(pkmn1);
-                    moveOrder.add(move1);
-                    orderOfAttack.add(pkmn2);
-                    moveOrder.add(move2);
+                    orderOfAttack.add(playerPkmn);
+                    moveOrder.add(playerMove);
+                    orderOfAttack.add(enemyPkmn);
+                    moveOrder.add(enemyMove);
                 }
             }
         } else {
-            if (move1.getPriority() > move2.getPriority()) {
-                orderOfAttack.add(pkmn1);
-                moveOrder.add(move1);
-                orderOfAttack.add(pkmn2);
-                moveOrder.add(move2);
-            } else if (move1.getPriority() < move2.getPriority()) {
-                orderOfAttack.add(pkmn2);
-                moveOrder.add(move2);
-                orderOfAttack.add(pkmn1);
-                moveOrder.add(move1);
+            if (playerMove.getPriority() > enemyMove.getPriority()) {
+                orderOfAttack.add(playerPkmn);
+                moveOrder.add(playerMove);
+                orderOfAttack.add(enemyPkmn);
+                moveOrder.add(enemyMove);
+            } else if (playerMove.getPriority() < enemyMove.getPriority()) {
+                orderOfAttack.add(enemyPkmn);
+                moveOrder.add(enemyMove);
+                orderOfAttack.add(playerPkmn);
+                moveOrder.add(playerMove);
             }
         }
     }
@@ -446,19 +466,19 @@ public class BattleEngine {
     }
     
     //When the turn end it calc relative modifiers
-    private ArrayList<Pokemon> endTurnAction(Pokemon pkmnATK, Pokemon pkmnDEF) {
-        pkmnATK.decreaseRoundCNF();
-        pkmnDEF.decreaseRoundCNF();
-        pkmnATK.decreaseRoundSLP();
-        pkmnDEF.decreaseRoundSLP();
-        pkmnATK.setIfFlinched(false);
-        pkmnDEF.setIfFlinched(false);
-        pkmn1Recoil = givePSNorBRNDamages(pkmnATK);
-        pkmn2Recoil = givePSNorBRNDamages(pkmnDEF);
+    private ArrayList<Pokemon> endTurnAction(Pokemon playerPkmn, Pokemon enemyPkmn) {
+        playerPkmn.decreaseRoundCNF();
+        enemyPkmn.decreaseRoundCNF();
+        playerPkmn.decreaseRoundSLP();
+        enemyPkmn.decreaseRoundSLP();
+        playerPkmn.setIfFlinched(false);
+        enemyPkmn.setIfFlinched(false);
+        playerPkmnRecoil = givePSNorBRNDamages(playerPkmn);
+        enemyPkmnRecoil = givePSNorBRNDamages(enemyPkmn);
         if (weatherClock > 0) {
             --weatherClock;
         }
-        return checkIfKO(pkmnATK, pkmnDEF);
+        return checkIfKO(playerPkmn, enemyPkmn);
     }
     
     //If Pokemon has malus it takes relative damage
@@ -570,22 +590,31 @@ public class BattleEngine {
      */
     public void switchPkmn(Trainer trn, Pokemon pkmnOut, Pokemon pkmnIn) {
         trn.getParty().switchPokemon(pkmnOut, pkmnIn);
+        if (pkmnIn != null) {
+            if (isFirst(pkmnOut)) {
+                orderOfAttack.remove(0);
+                orderOfAttack.add(0, pkmnIn);
+            } else {
+                orderOfAttack.remove(1);
+                orderOfAttack.add(1, pkmnIn);
+            }
+        }
         System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
     }
 
     public int getDamage() {
         return damage;
     }
-    public int getPkmn1Recoil() {
-        return pkmn1Recoil;
+    public int getPlayerPkmnRecoil() {
+        return playerPkmnRecoil;
     }
-    public int getPkmn2Recoil() {
-        return pkmn2Recoil;
+    public int getEnemyPkmnRecoil() {
+        return enemyPkmnRecoil;
     }
     
     public void flush() {
         moveOrder.clear();
         orderOfAttack.clear();
-        pkmn1Recoil = pkmn2Recoil = 0;
+        playerPkmnRecoil = enemyPkmnRecoil = 0;
     }
 }
