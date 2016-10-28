@@ -11,15 +11,8 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -162,8 +155,7 @@ public class Pokemon {
     private BagItem ownItem;
     private Ability ability;
     private ArrayList<Move> moveSet = new ArrayList<>();
-    private HashMap<String, Integer> moveLevel = new HashMap<>();
-//    private BidiMap<String, Integer> moveLevel = new DualHashBidiMap<>();
+    private ArrayList<String> allMoves = new ArrayList<>();
     
     //Evolution
     private String nextPokemon;
@@ -405,7 +397,6 @@ public class Pokemon {
     }
     public final void assignMove(File csvMoves) throws IOException {
         String line, split = ";", splitMove = "#";
-        ArrayList<String> allMoves = new ArrayList<>();
         BufferedReader bufferMove = null;
         
         bufferMove = new BufferedReader(new FileReader(csvMoves));
@@ -421,8 +412,9 @@ public class Pokemon {
             String[] currentMove = allMoves.get(y).split(splitMove);
             if (parseInteger(currentMove[1]) <= this.getLevel()) {
                 if (moveSet.size() < 6) {
-                    if (!moveSet.contains(new Move(currentMove[0]))) {
-                        moveSet.add(0, new Move(currentMove[0]));
+                    Move move = new Move(currentMove[0]);
+                    if (!getIfContainsMove(move)) {
+                        moveSet.add(0, move);
                     }
                 } else {
                     break;
@@ -668,8 +660,16 @@ public class Pokemon {
     public int getEvolutionLevel2() { return evolutionLevel2; }
     public String getEvolutionWay2() { return evolutionWay2; }
     
-    public Map<String, Integer> getMoveLevel() { return moveLevel; }
     public ArrayList<Move> getMoveSet() { return moveSet; }
+    public ArrayList<String> getAllMoves() { return allMoves; }
+    public boolean getIfContainsMove(Move newMove) {
+        for (Move move : moveSet) {
+            if (newMove.getName().equals(moveSet.get(moveSet.indexOf(move)).getName())) {
+                return true;
+            }
+        }
+        return false;
+    }
     public int getNumberOfMoves() { return moveSet.size(); }
     public Move getRandomMove(boolean morePP, int usedPP) {
         if (useStruggle()) return new Move("Struggle");
