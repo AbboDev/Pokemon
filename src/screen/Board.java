@@ -58,7 +58,6 @@ public class Board extends JFrame {
                 System.out.println(ch);
                 if (ch == '1') {
                     battleBoard.setTrainer(statsBoard.returnTrainer());
-                    battleBoard.printAll();
                     frame.remove(statsBoard);
                     frame.add(battleBoard);
                 } else if (ch == '2') {

@@ -24,7 +24,7 @@ public class BattleEngine {
     private final int numberOfPokemon;
     private final ArrayList<Pokemon> orderOfAttack = new ArrayList<>();
     private final ArrayList<Move> moveOrder = new ArrayList<>();
-    private int damage;
+    private ArrayList<Integer> damage;
     private Weather weather;
     private int weatherClock;
     private final Arena arena;
@@ -57,6 +57,7 @@ public class BattleEngine {
         this.isTrainer = isTrainer;
         calendar = Calendar.getInstance();
         rand = new Random();
+        damage = new ArrayList<>();
     }
 
     /**
@@ -119,7 +120,7 @@ public class BattleEngine {
     }
     
     public void resetDamage() {
-        damage = 0;
+        damage.clear();
     }
     
     public void changeOrder(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
@@ -158,7 +159,7 @@ public class BattleEngine {
                 System.out.println(n+"");
             }
         }
-        while (n > 0) {
+        for (int i = 0; i < n; ++i) {
             if (pkmnATK.getStatus() != Pokemon.Status.KO) {
                 if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) pkmnATK.setStatus(Pokemon.Status.OK);
                 if (pkmnATK.getRoundCNF() == 0) pkmnATK.setIfConfused(false);
@@ -180,16 +181,15 @@ public class BattleEngine {
                         }
 
                         if (move.getType() != Move.TypeOfAttacks.Status) {
-                            damage = calcDamage(pkmnATK, pkmnDEF, move);
+                            damage.add(calcDamage(pkmnATK, pkmnDEF, move));
                             System.out.println(pkmnDEF.getSurname() + " loses " + damage);
-                            pkmnDEF.takeDamage(damage);
+                            pkmnDEF.takeDamage(damage.get(i));
                         }
                         calcEffect(pkmnATK, pkmnDEF, move);
                         setWeather(move);
-                        --n;
                     } else if (!canAttackIfConfused(pkmnATK)) {
-                        damage = takeRecoilFromConfusion(pkmnATK);
-                        pkmnATK.takeDamage(damage);
+                        damage.add(takeRecoilFromConfusion(pkmnATK));
+                        pkmnATK.takeDamage(damage.get(i));
                         System.out.println(pkmnATK.getSurname() + " hit itself on its confusion!");
                         break;
                     }
@@ -602,7 +602,13 @@ public class BattleEngine {
         System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
     }
 
-    public int getDamage() {
+    public int getDamage(int index) {
+        if (!damage.isEmpty()) {
+            return damage.get(index);
+        }
+        return 0;
+    }
+    public ArrayList<Integer> getDamageArray() {
         return damage;
     }
     public int getPlayerPkmnRecoil() {

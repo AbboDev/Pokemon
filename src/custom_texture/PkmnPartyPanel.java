@@ -40,7 +40,7 @@ public class PkmnPartyPanel extends javax.swing.JPanel {
         startIconTimer();
     }
     
-    private void refreshAll() {
+    public final void refreshAll() {
         boolean sexBoolean = !pokemon.getIfAsessual();
         icon.setIcon(pokemon.getSprite(ICON, 40, 30, false, sexBoolean));
         name.setText(pokemon.getSurname());
