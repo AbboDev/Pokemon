@@ -56,6 +56,9 @@ public class PkmnPartyPanel extends javax.swing.JPanel {
         hp.setText(pokemon.getHP()+"/"+pokemon.getMaxHP());
         changeStatus(pokemon.getStatus());
     }
+    public final Pokemon getSelfPkmn() {
+        return pokemon;
+    }
     
     private void changeStatus(Status st) {
         if (st != null) {

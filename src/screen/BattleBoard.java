@@ -582,7 +582,7 @@ public class BattleBoard extends javax.swing.JPanel {
         for (int i = 0; i < PartyPanel.getComponents().length; ++i) {
             try {
                 PkmnPartyPanel comp = (PkmnPartyPanel) PartyPanel.getComponent(i);
-                if (comp.getName().equals(selfPokemon.getName())) {
+                if (comp.getSelfPkmn().equals(selfPokemon)) {
                     comp.refreshAll();
                 }
             } catch (Exception e) {}
