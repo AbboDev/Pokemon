@@ -11,16 +11,10 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import object.Move.StatsOfAttacks;
-
-//import org.apache.commons.collections4.*;
-//import org.apache.commons.collections4.bidimap.DualHashBidiMap;
-//import org.apache.commons.collections4.bidimap.DualLinkedHashBidiMap;
 
 /**
  * @author Thomas
@@ -222,7 +216,7 @@ public class Pokemon {
     public Pokemon(int ID, int level, boolean wild, String trainerIDhex, String trainerIDoct) {
         assignFile();
         this.ID = ID;
-        File csvStats = null, csvMoves = null;
+        File csvStats, csvMoves;
         if (ID >= 1 && ID <= 151) {
             csvStats = KANTO;
             csvMoves = KANTO_MOVE;
@@ -754,7 +748,7 @@ public class Pokemon {
     
     public ImageIcon getSprite(String path, int width, int height, boolean mirror, boolean sex) {
         String imagePath = getImagePath(path, sex);
-        BufferedImage image = loadImage(imagePath);
+        BufferedImage image = loadImage(imagePath, path);
         ImageIcon imageIcon;
         if (!mirror) {
             imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
@@ -775,7 +769,8 @@ public class Pokemon {
         if (sex) {
             if (!this.getIfMale()) {
                 boolean checkF;
-                checkF = new File(sprite+path+"female/"+ID+".png").exists();
+                File f = new File(sprite+path+"female/"+ID+".png");
+                checkF = f.exists();
                 if (checkF) {
                     path += "female/";
                 }
@@ -784,12 +779,17 @@ public class Pokemon {
         String image = sprite + path + ID + ".png";
         return image;
     }
-    private BufferedImage loadImage(String path) {
+    private BufferedImage loadImage(String path, String sprite) {
         BufferedImage buff;
         try {
             buff = ImageIO.read(classLoader.getResourceAsStream(path));
         } catch (IOException e) {
-            return null;
+            try {
+                String newPath = getImagePath(sprite, false);
+                buff = ImageIO.read(classLoader.getResourceAsStream(newPath));
+            } catch (Exception ex) {
+                return null;
+            }
         }
         return buff;
     }

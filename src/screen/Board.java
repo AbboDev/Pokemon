@@ -4,8 +4,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.IOException;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.plaf.FontUIResource;
 import object.Pokemon;
 import object.Trainer;
 
@@ -21,8 +23,8 @@ public class Board extends JFrame {
     public Board() throws IOException {
         Trainer mainCharacter = new Trainer();
         
-//        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon gyarados = new Pokemon(162, 18, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+//        Pokemon gyarados = new Pokemon(162, 18, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon umbreon = new Pokemon(197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
@@ -94,10 +96,44 @@ public class Board extends JFrame {
             }
         });
     }
-    private static void putUI() {
+    private void putUI() {
         try {
             Color bgc = new Color(0, 255, 0);
             Color fgc = new Color(255, 0, 0);
+            Font f = createFont();
+//            setUIFont(new javax.swing.plaf.FontUIResource(f));
+            
+//            UIManager.put("Button.font", f);
+//            UIManager.put("ToggleButton.font", f);
+//            UIManager.put("RadioButton.font", f);
+//            UIManager.put("CheckBox.font", f);
+//            UIManager.put("ColorChooser.font", f);
+//            UIManager.put("ComboBox.font", f);
+//            UIManager.put("Label.font", f);
+//            UIManager.put("List.font", f);
+//            UIManager.put("MenuBar.font", f);
+//            UIManager.put("MenuItem.font", f);
+//            UIManager.put("RadioButtonMenuItem.font", f);
+//            UIManager.put("CheckBoxMenuItem.font", f);
+//            UIManager.put("Menu.font", f);
+//            UIManager.put("PopupMenu.font", f);
+//            UIManager.put("OptionPane.font", f);
+//            UIManager.put("Panel.font", f);
+//            UIManager.put("ProgressBar.font", f);
+//            UIManager.put("ScrollPane.font", f);
+//            UIManager.put("Viewport.font", f);
+//            UIManager.put("TabbedPane.font", f);
+//            UIManager.put("Table.font", f);
+//            UIManager.put("TableHeader.font", f);
+//            UIManager.put("TextField.font", f);
+//            UIManager.put("PasswordField.font", f);
+//            UIManager.put("TextArea.font", f);
+//            UIManager.put("TextPane.font", f);
+//            UIManager.put("EditorPane.font", f);
+//            UIManager.put("TitledBorder.font", f);
+//            UIManager.put("ToolBar.font", f);
+//            UIManager.put("ToolTip.font", f);
+//            UIManager.put("Tree.font", f);
             
 //            UIManager.put("control", new Color(255, 255, 255, 0));
             UIManager.put("info", new Color(255, 255, 255, 0)); //remove
@@ -176,14 +212,28 @@ public class Board extends JFrame {
             }
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { }
     }
-
-    public static StatsBoard getStatsBoardComponents(final Container c) {
-        Component[] comps = c.getComponents();
-        StatsBoard board = null;
-        for (Component comp : comps) {
-            if (comp instanceof StatsBoard) return board;
+    
+    public Font createFont() {
+        Font f = null;
+        try {
+            File file = new File(getClass().getClassLoader().getResource("res/font/font.ttf").getFile());
+            f = Font.createFont(Font.TRUETYPE_FONT, file);
+            f = f.deriveFont(Font.PLAIN, 16);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            ge.registerFont(f);
+        } catch (IOException | FontFormatException ex) { }
+        return f;
+    }
+    
+    public static void setUIFont(javax.swing.plaf.FontUIResource f) {
+        java.util.Enumeration keys = UIManager.getDefaults().keys();
+        while (keys.hasMoreElements()) {
+            Object key = keys.nextElement();
+            Object value = UIManager.get (key);
+            if (value != null && value instanceof javax.swing.plaf.FontUIResource) {
+                UIManager.put(key, f);
+            }
         }
-        return board;
     }
 }
 

@@ -5,20 +5,29 @@ import custom_texture.PkmnPartyPanel;
 import engine.BattleEngine;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.logging.Logger;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
 import object.Move;
 import object.Pokemon;
-import static object.Pokemon.Status.*;
 import object.Trainer;
+
+import static object.Pokemon.Status.*;
 
 /**
  * @author Thomas
@@ -496,7 +505,8 @@ public class BattleBoard extends javax.swing.JPanel {
                             System.out.println("Press "+move.getName());
                             pkmn.getMoveSet().get(index).decreasePP(false, 1);
                             MovePanel mvp = (MovePanel)e.getSource();
-                            mvp.getPP().setText(move.getPP()+"/"+move.getMaxPP());
+                            mvp.changePP();
+                            mvp.recolor();
 
                             firstTurn = true;
                             selfMove = move;
@@ -620,14 +630,14 @@ public class BattleBoard extends javax.swing.JPanel {
         }
     }
     private void printInBattleStats(Pokemon pkmn) throws IOException {
-        Name.setText(pkmn.getSurname());
+        Name.setText(pkmn.getSurname().toUpperCase());
         printLevel(pkmn, Level);
         HealtBar.setMinimum(0);
         printHPBar(pkmn, true, HealtBar, Healt, Status);
         printExpBar(pkmn, true);
     }
     private void printEnemyInBattleStats(Pokemon pkmn) throws IOException {
-        eName.setText(pkmn.getSurname());
+        eName.setText(pkmn.getSurname().toUpperCase());
         printLevel(pkmn, eLevel);
         eHealtBar.setMinimum(0);
         printHPBar(pkmn, true, eHealtBar, eHealt, eStatus);
@@ -655,8 +665,8 @@ public class BattleBoard extends javax.swing.JPanel {
         stat.setForeground(Color.black);
         switch (pkmn.getStatus()) {
             case OK:
-                stat.setText("OK");
-                stat.setBackground(Color.white);
+                stat.setText("");
+                stat.setBackground(new Color(0, 0, 0, 0));
                 break;
             case Asleep:
                 stat.setText("SLP");
@@ -817,9 +827,11 @@ public class BattleBoard extends javax.swing.JPanel {
             .addComponent(jTextField5, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
+        Status.setBackground(new java.awt.Color(153, 153, 153));
         Status.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Status.setText("OK");
         Status.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        Status.setOpaque(true);
 
         javax.swing.GroupLayout BattlePanelLayout = new javax.swing.GroupLayout(BattlePanel);
         BattlePanel.setLayout(BattlePanelLayout);
@@ -931,9 +943,11 @@ public class BattleBoard extends javax.swing.JPanel {
             .addComponent(jTextField7, javax.swing.GroupLayout.PREFERRED_SIZE, 15, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
+        eStatus.setBackground(new java.awt.Color(153, 153, 153));
         eStatus.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         eStatus.setText("OK");
         eStatus.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        eStatus.setOpaque(true);
 
         javax.swing.GroupLayout eBattlePanelLayout = new javax.swing.GroupLayout(eBattlePanel);
         eBattlePanel.setLayout(eBattlePanelLayout);
@@ -1034,7 +1048,6 @@ public class BattleBoard extends javax.swing.JPanel {
 
         TextControl.setFont(new java.awt.Font("Segoe UI Symbol", 0, 14)); // NOI18N
         TextControl.setText("text");
-        TextControl.setOpaque(false);
         TextControl.setPreferredSize(new java.awt.Dimension(720, 60));
         TextPanel.add(TextControl);
 
@@ -1068,7 +1081,7 @@ public class BattleBoard extends javax.swing.JPanel {
                 .addGroup(BattleBoardLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(BattleBoardLayout.createSequentialGroup()
                         .addComponent(eImagePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 137, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 142, Short.MAX_VALUE)
                         .addComponent(BattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(BattleBoardLayout.createSequentialGroup()
                         .addComponent(eBattlePanel, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)

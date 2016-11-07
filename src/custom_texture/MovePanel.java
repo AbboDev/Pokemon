@@ -14,7 +14,6 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
@@ -28,7 +27,7 @@ import object.Pokemon.Type;
  */
 public class MovePanel extends javax.swing.JPanel {
     private final static String IMAGE = "res/image/";
-    private Move move;
+    private final Move move;
     private Color original1, original2;
     private Color color1, color2;
     private Color border1, border2;
@@ -36,8 +35,7 @@ public class MovePanel extends javax.swing.JPanel {
 
     /**
      * Creates new form PokemonPanel
-     *
-     * @param pkmn
+     * @param move
      */
     public MovePanel(Move move) {
         initComponents();
@@ -51,9 +49,32 @@ public class MovePanel extends javax.swing.JPanel {
 
     private void refreshAll() {
         name.setText(move.getName());
-        PP.setText(move.getPP() + "/" + move.getMaxPP());
+        changePP();
 
         changeStatus(move);
+    }
+    
+    public final void changePP() {
+        PP.setText(move.getPP() + "/" + move.getMaxPP());
+        float movePP = move.getPP();
+        float moveMaxPP = move.getMaxPP();
+        float diffPP = movePP/moveMaxPP;
+        if (movePP == 0) {
+            PP.setForeground(Color.gray);
+            name.setForeground(Color.gray);
+        } else if (diffPP > 0.5 && diffPP <= 1) {
+            PP.setForeground(Color.black);
+            name.setForeground(Color.black);
+        } else if (diffPP > 0.25 && diffPP <= 0.5) {
+            PP.setForeground(Color.yellow);
+            name.setForeground(Color.yellow);
+        } else if (diffPP > 0.125 && diffPP <= 0.25) {
+            PP.setForeground(Color.orange);
+            name.setForeground(Color.orange);
+        } else if (diffPP < 0.125) {
+            PP.setForeground(Color.red);
+            name.setForeground(Color.red);
+        }
     }
     
     private BufferedImage loadImage(String path) {
@@ -219,53 +240,60 @@ public class MovePanel extends javax.swing.JPanel {
         ma = new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                for (int i = 0; i < 2; ++i) {
-                    Color c = null;
-                    if (i == 0) {
-                        c = original1;
-                    } else {
-                        c = original2;
+                if (move.getPP() > 0) {
+                    for (int i = 0; i < 2; ++i) {
+                        Color c;
+                        if (i == 0) {
+                            c = original1;
+                        } else {
+                            c = original2;
+                        }
+                        Color back = new Color(c.getRed(), c.getGreen(), c.getBlue());
+                        int red, green, blue;
+                        if ((back.getRed() + 50) <= 255) {
+                            red = c.getRed() + 50;
+                        } else {
+                            red = 255;
+                        }
+                        if ((back.getGreen() + 50) <= 255) {
+                            green = c.getGreen() + 50;
+                        } else {
+                            green = 255;
+                        }
+                        if ((back.getBlue() + 50) <= 255) {
+                            blue = c.getBlue() + 50;
+                        } else {
+                            blue = 255;
+                        }
+                        if (i == 0) {
+                            color1 = new Color(red, green, blue);
+                        } else {
+                            color2 = new Color(red, green, blue);
+                        }
                     }
-                    Color back = new Color(c.getRed(), c.getGreen(), c.getBlue());
-                    int red, green, blue;
-                    if ((back.getRed() + 50) <= 255) {
-                        red = c.getRed() + 50;
-                    } else {
-                        red = 255;
-                    }
-                    if ((back.getGreen() + 50) <= 255) {
-                        green = c.getGreen() + 50;
-                    } else {
-                        green = 255;
-                    }
-                    if ((back.getBlue() + 50) <= 255) {
-                        blue = c.getBlue() + 50;
-                    } else {
-                        blue = 255;
-                    }
-                    if (i == 0) {
-                        color1 = new Color(red, green, blue);
-                    } else {
-                        color2 = new Color(red, green, blue);
-                    }
+                    Graphics g = getGraphics();
+                    paintComponent(g);
+                    repaint();
+                    revalidate();
                 }
-                Graphics g = getGraphics();
-                paintComponent(g);
-                repaint();
-                revalidate();
             }
 
             @Override
             public void mouseReleased(MouseEvent e) {
-                color1 = original1;
-                color2 = original2;
-                Graphics g = getGraphics();
-                paintComponent(g);
-                repaint();
-                revalidate();
+                if (move.getPP() > 0) {
+                    recolor();
+                }
             }
         };
         this.addMouseListener(ma);
+    }
+    public void recolor() {
+        color1 = original1;
+        color2 = original2;
+        Graphics g = getGraphics();
+        paintComponent(g);
+        repaint();
+        revalidate();
     }
 
     public JLabel getPP() {
@@ -371,8 +399,8 @@ public class MovePanel extends javax.swing.JPanel {
 
 class GradientBorder implements Border
 {
-    private Insets margin;
-    private Color col1, col2;
+    private final Insets margin;
+    private final Color col1, col2;
 
     public GradientBorder (int top, int left, int bottom, int right, Color c1, Color c2) {
         super();

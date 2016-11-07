@@ -11,15 +11,14 @@ import object.Pokemon.Status;
 import static object.Pokemon.Status.*;
 
 /**
- *
  * @author Thomas
  */
 public class PkmnPartyPanel extends javax.swing.JPanel {
     private final static String ICON = "res/icons";
     private final static int TIMER_DELAY = 150;
-    private Pokemon pokemon;
+    private final Pokemon pokemon;
     private Color original;
-    private int startX, startY;
+    private final int startX, startY;
     private Timer timerIcon;
     private MouseAdapter ma;
 

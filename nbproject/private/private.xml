@@ -11,9 +11,11 @@
             <file>file:/F:/Project/Pokemon/src/screen/StatsBoard.java</file>
         </group>
         <group>
-            <file>file:/E:/Pokemon/src/custom_texture/PkmnPartyPanel.java</file>
-            <file>file:/E:/Pokemon/src/screen/Board.java</file>
-            <file>file:/E:/Pokemon/src/screen/BattleBoard.java</file>
+            <file>file:/E:/Project/Pokemon/src/custom_texture/PkmnPartyPanel.java</file>
+            <file>file:/E:/Project/Pokemon/src/screen/Board.java</file>
+            <file>file:/E:/Project/Pokemon/src/screen/BattleBoard.java</file>
+            <file>file:/E:/Project/Pokemon/src/object/Pokemon.java</file>
+            <file>file:/E:/Project/Pokemon/src/custom_texture/MovePanel.java</file>
         </group>
     </open-files>
 </project-private>
