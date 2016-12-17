@@ -24,7 +24,7 @@ public class BattleEngine {
     private final int numberOfPokemon;
     private final ArrayList<Pokemon> orderOfAttack = new ArrayList<>();
     private final ArrayList<Move> moveOrder = new ArrayList<>();
-    private ArrayList<Integer> damage;
+    private final ArrayList<Integer> damage;
     private Weather weather;
     private int weatherClock;
     private final Arena arena;
@@ -76,6 +76,10 @@ public class BattleEngine {
 
     /**
      *
+     * @param playerPkmn
+     * @param playerMove
+     * @param enemyPkmn
+     * @param enemyMove
      * @return
      */
     public ArrayList<Pokemon> firstMove(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
@@ -88,8 +92,10 @@ public class BattleEngine {
 
     /**
      *
-     * @param pkmn1
-     * @param pkmn2
+     * @param playerPkmn
+     * @param playerMove
+     * @param enemyPkmn
+     * @param enemyMove
      * @return
      */
     public ArrayList<Pokemon> secondMove(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
@@ -145,10 +151,7 @@ public class BattleEngine {
     }
     
     private boolean isFirst(Pokemon pkmn) {
-        if (pkmn == orderOfAttack.get(0)) {
-            return true;
-        }
-        return false;
+        return pkmn == orderOfAttack.get(0);
     }
 
     private void action(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
@@ -161,9 +164,14 @@ public class BattleEngine {
         }
         for (int i = 0; i < n; ++i) {
             if (pkmnATK.getStatus() != Pokemon.Status.KO) {
-                if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) pkmnATK.setStatus(Pokemon.Status.OK);
-                if (pkmnATK.getRoundCNF() == 0) pkmnATK.setIfConfused(false);
-
+                if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) {
+                    pkmnATK.setStatus(Pokemon.Status.OK);
+                    System.out.println(pkmnATK.getSurname()+" wakes up!");
+                }
+                if (pkmnATK.getRoundCNF() == 0 && pkmnATK.getIfConfused()) {
+                    pkmnATK.setIfConfused(false);
+                    System.out.println(pkmnATK.getSurname()+" gets out of confusion!");
+                }
                 if (!canAttackIfFrozen(pkmnATK)) {
                     System.out.println(pkmnATK.getSurname() + " is frozen solid!"); break;
                 } else if (!canAttackIfParalyzed(pkmnATK)) {
@@ -195,6 +203,9 @@ public class BattleEngine {
                     }
                 }
             }
+        }
+        if (n > 1) {
+            System.out.println("Hit "+n+" times!");
         }
     }
     
@@ -516,8 +527,7 @@ public class BattleEngine {
         if (pkmn.getStatus() == Pokemon.Status.Paralysis) {
             int r = rand.nextInt((100 - 0) + 1) - 0;
             return r >= 0 && r < 75; //true = attack!
-        }
-        return true;
+        } return true;
     }
     //If pokemon is frozen: if return true the pokemon
     //attack normally and, eventually, it unfrozen,
@@ -529,8 +539,7 @@ public class BattleEngine {
                 pkmn.setStatus(Pokemon.Status.OK);
                 return true;//true = attack!
             }
-        }
-        return true;
+        } return true;
     }
     //If pokemon is infatuated: if return true the pokemon
     //attack normally, else it doesn't attack
@@ -538,8 +547,7 @@ public class BattleEngine {
         if (pkmn.getIfInfatuated()) {
             int r = rand.nextInt((100 - 0) + 1) - 0;
             return r >= 0 && r < 50; //true = attack!
-        }
-        return true;
+        } return true;
     }
     //If pokemon is confused: if return true the pokemon
     //attack normally, else it hits itself
@@ -548,8 +556,7 @@ public class BattleEngine {
             int r = rand.nextInt((100 - 0) + 1) - 0;
             pkmn.decreaseRoundCNF();
             return r >= 0 && r < 50; //true = attack!
-        }
-        return true;
+        } return true;
     }
     
     /**
@@ -602,22 +609,40 @@ public class BattleEngine {
         System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
     }
 
+    /**
+     *
+     * @param index
+     * @return
+     */
     public int getDamage(int index) {
         if (!damage.isEmpty()) {
             return damage.get(index);
-        }
-        return 0;
+        } return 0;
     }
+    /**
+     *
+     * @return
+     */
     public ArrayList<Integer> getDamageArray() {
         return damage;
     }
+    /**
+     *
+     * @return
+     */
     public int getPlayerPkmnRecoil() {
         return playerPkmnRecoil;
     }
+    /**
+     *
+     * @return
+     */
     public int getEnemyPkmnRecoil() {
         return enemyPkmnRecoil;
     }
-    
+    /**
+     *
+     */
     public void flush() {
         moveOrder.clear();
         orderOfAttack.clear();

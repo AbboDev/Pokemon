@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Random;
 import object.Pokemon.Type;
+import screen.Board;
 
 /**
  * @author Thomas
@@ -75,8 +76,9 @@ public class Move {
     public static File MOVES;
     
     private void assignFile() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
+//        ClassLoader classLoader = getClass().getClassLoader();
+//        MOVES = new File(classLoader.getResource("database/move.csv").getFile());
+        MOVES = new File(Board.ROOT+"/resources/database/move.csv");
     }
     
     public Move (String searchName) {

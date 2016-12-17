@@ -4,29 +4,29 @@ import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Image;
 import java.awt.*;
 import java.awt.RenderingHints;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Area;
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-
-import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
-
 import object.Move;
 import object.Move.TypeOfAttacks;
 import object.Pokemon.Type;
+import screen.Board;
 
 /**
  * @author Thomas
  */
-public class MovePanel extends javax.swing.JPanel {
-    private final static String IMAGE = "res/image/";
+public class MovePanel extends ExpandPanel {
+    private static final long serialVersionUID = -1853805251000791772L;
+    private static final String IMAGE = "/resources/image/";
+    private static final int BORDER = 2;
+    private static final int ICON_WIDTH = 45;
+    private static final int ICON_HEIGTH = 20;
+    
     private final Move move;
     private Color original1, original2;
     private Color color1, color2;
@@ -36,22 +36,23 @@ public class MovePanel extends javax.swing.JPanel {
     /**
      * Creates new form PokemonPanel
      * @param move
+     * @param mult
      */
-    public MovePanel(Move move) {
+    public MovePanel(Move move, int mult) {
         initComponents();
-        addListener();
+        expandComponent(mult);
 
         this.move = move;
 
         setTextColor();
-        refreshAll();
+        refreshAll(mult);
     }
 
-    private void refreshAll() {
+    private void refreshAll(int mult) {
         name.setText(move.getName());
         changePP();
 
-        changeStatus(move);
+        changeStatus(move, mult);
     }
     
     public final void changePP() {
@@ -77,18 +78,7 @@ public class MovePanel extends javax.swing.JPanel {
         }
     }
     
-    private BufferedImage loadImage(String path) {
-        BufferedImage buff;
-        ClassLoader classLoader = getClass().getClassLoader();
-        try {
-            buff = ImageIO.read(classLoader.getResourceAsStream(path));
-        } catch (IOException e) {
-            return null;
-        }
-        return buff;
-    }
-    
-    private void changeStatus(Move move) {
+    private void changeStatus(Move move, int mult) {
         Type typeMove = move.getMoveType();
         switch (typeMove) {
             case Normal:
@@ -214,21 +204,16 @@ public class MovePanel extends javax.swing.JPanel {
                 border2 = (new Color(155, 155, 155));
                 break;
         }
-        color1 = original1;
-        color2 = original2;
+        color1 = original1; color2 = original2;
         TypeOfAttacks typeOfAttack = move.getType();
-        ImageIcon imageIcon;
         
-        BufferedImage imageBuff = loadImage(IMAGE+typeOfAttack.name()+"IC.png");
-        imageIcon = new ImageIcon(new ImageIcon(imageBuff).getImage().getScaledInstance(45, 20, Image.SCALE_SMOOTH));
-        type.setIcon(imageIcon);
-        
-        imageBuff = loadImage(IMAGE + typeMove.name() + "IC_Big.png");
-        imageIcon = new ImageIcon(new ImageIcon(imageBuff).getImage().getScaledInstance(45, 20, Image.SCALE_SMOOTH));
-        stat.setIcon(imageIcon);
+        ImageIcon imageIcon = SpriteImage.getImage(Board.ROOT+IMAGE+typeOfAttack.name()+".png");
+        type.setIcon(SpriteImage.getScaledImage(imageIcon, ICON_WIDTH*mult, ICON_HEIGTH*mult));
+        imageIcon = SpriteImage.getImage(Board.ROOT+IMAGE+typeMove.name()+".png");
+        stat.setIcon(SpriteImage.getScaledImage(imageIcon, ICON_WIDTH*mult, ICON_HEIGTH*mult));
         
         this.setBackground(original1);
-        this.setBorder(new GradientBorder(2, 2, 2, 2, border1, border2));
+        this.setBorder(new GradientBorder(BORDER*mult, BORDER*mult, BORDER*mult, BORDER*mult, border1, border2));
     }
 
     private void setTextColor() {
@@ -299,17 +284,17 @@ public class MovePanel extends javax.swing.JPanel {
     public JLabel getPP() {
         return PP;
     }
-
     public JLabel getMoveName() {
         return name;
     }
-
     public JLabel getStat() {
         return stat;
     }
-
     public JLabel getType() {
         return type;
+    }
+    public Move getMove() {
+        return move;
     }
     
     @Override
@@ -333,72 +318,115 @@ public class MovePanel extends javax.swing.JPanel {
     // <editor-fold defaultstate="collapsed" desc="Generated
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        java.awt.GridBagConstraints gridBagConstraints;
 
-        PP = new javax.swing.JLabel();
+        NamePanel = new javax.swing.JPanel();
         name = new javax.swing.JLabel();
-        type = new javax.swing.JLabel();
+        PPPanel = new javax.swing.JPanel();
+        PP = new javax.swing.JLabel();
+        IconsPanel = new javax.swing.JPanel();
         stat = new javax.swing.JLabel();
+        type = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(204, 204, 204));
-        setMaximumSize(new java.awt.Dimension(160, 60));
+        setMaximumSize(new java.awt.Dimension(320, 120));
         setMinimumSize(new java.awt.Dimension(160, 60));
         setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(160, 60));
+        setRequestFocusEnabled(false);
+        setLayout(new java.awt.GridBagLayout());
 
-        PP.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        PP.setToolTipText("");
-        PP.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        NamePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 10, 0, 0));
+        NamePanel.setMaximumSize(new java.awt.Dimension(120, 30));
+        NamePanel.setOpaque(false);
+        NamePanel.setPreferredSize(new java.awt.Dimension(120, 30));
+        NamePanel.setLayout(new java.awt.BorderLayout());
 
-        name.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        name.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        name.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        name.setText("NAME");
         name.setToolTipText("");
         name.setHorizontalTextPosition(javax.swing.SwingConstants.LEADING);
+        name.setMaximumSize(new java.awt.Dimension(220, 30));
+        name.setMinimumSize(new java.awt.Dimension(110, 30));
+        name.setPreferredSize(new java.awt.Dimension(110, 30));
+        NamePanel.add(name, java.awt.BorderLayout.CENTER);
 
-        type.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        type.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.gridwidth = 3;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(NamePanel, gridBagConstraints);
 
+        PPPanel.setMaximumSize(new java.awt.Dimension(100, 60));
+        PPPanel.setMinimumSize(new java.awt.Dimension(50, 30));
+        PPPanel.setOpaque(false);
+        PPPanel.setPreferredSize(new java.awt.Dimension(50, 30));
+        PPPanel.setLayout(new java.awt.BorderLayout());
+
+        PP.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        PP.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        PP.setText("PP/MAX");
+        PP.setToolTipText("");
+        PP.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        PP.setMaximumSize(new java.awt.Dimension(100, 60));
+        PP.setMinimumSize(new java.awt.Dimension(50, 30));
+        PP.setPreferredSize(new java.awt.Dimension(50, 30));
+        PPPanel.add(PP, java.awt.BorderLayout.CENTER);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 3;
+        gridBagConstraints.gridy = 0;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 1.0;
+        gridBagConstraints.weighty = 1.0;
+        add(PPPanel, gridBagConstraints);
+
+        IconsPanel.setMaximumSize(new java.awt.Dimension(120, 30));
+        IconsPanel.setOpaque(false);
+        IconsPanel.setPreferredSize(new java.awt.Dimension(120, 30));
+        IconsPanel.setLayout(new java.awt.GridLayout(1, 0));
+
+        stat.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
         stat.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         stat.setToolTipText("");
         stat.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        stat.setMaximumSize(new java.awt.Dimension(60, 30));
+        stat.setMinimumSize(new java.awt.Dimension(60, 30));
+        stat.setPreferredSize(new java.awt.Dimension(60, 30));
+        IconsPanel.add(stat);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
-        this.setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(0, 0, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 104, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(PP, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(type, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(stat, javax.swing.GroupLayout.PREFERRED_SIZE, 77, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(name, javax.swing.GroupLayout.DEFAULT_SIZE, 32, Short.MAX_VALUE)
-                    .addComponent(PP, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(type, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(stat, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 22, javax.swing.GroupLayout.PREFERRED_SIZE)))
-        );
+        type.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        type.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        type.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        type.setMaximumSize(new java.awt.Dimension(60, 30));
+        type.setMinimumSize(new java.awt.Dimension(60, 30));
+        type.setPreferredSize(new java.awt.Dimension(60, 30));
+        IconsPanel.add(type);
+
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 1;
+        gridBagConstraints.gridwidth = 4;
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weighty = 1.0;
+        add(IconsPanel, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel IconsPanel;
+    private javax.swing.JPanel NamePanel;
     private javax.swing.JLabel PP;
+    private javax.swing.JPanel PPPanel;
     private javax.swing.JLabel name;
     private javax.swing.JLabel stat;
     private javax.swing.JLabel type;
     // End of variables declaration//GEN-END:variables
 }
 
-class GradientBorder implements Border
-{
+class GradientBorder implements Border {
     private final Insets margin;
     private final Color col1, col2;
 

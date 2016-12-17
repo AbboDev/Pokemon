@@ -21,13 +21,13 @@ public class Trainer {
     public boolean runningShoes;
     public boolean isUsingBike;
 
-    private static final int maxRand = 999999999;
-    private static final int minRand = 100000000;
-    private Random rand;
-    private int randomNum;
+    private static final int MAX_RAND = 999999999;
+    private static final int MIN_RAND = 100000000;
+    private final Random rand;
 
-    public Trainer() {
+    public Trainer(String name) {
     	rand = new Random();
+        this.name = name;
     	randID();
     	money = 0;
     	party = new Party();
@@ -42,10 +42,10 @@ public class Trainer {
     //the first is in octal format
     //the second is in hexadecimal format
     private void randID() {
-    	randomNum = rand.nextInt((maxRand - minRand) + 1) + maxRand;
-    	octID = Integer.toOctalString(randomNum);
-    	randomNum = rand.nextInt((maxRand - minRand) + 1) + maxRand;
-    	hexID = Integer.toHexString(randomNum);
+    	int randomNum1 = rand.nextInt((MAX_RAND - MIN_RAND) + 1) + MAX_RAND;
+    	octID = Integer.toOctalString(randomNum1);
+    	int randomNum2 = rand.nextInt((MAX_RAND - MIN_RAND) + 1) + MAX_RAND;
+    	hexID = Integer.toHexString(randomNum2);
     }
 
     public String getOctID() {

@@ -2,43 +2,75 @@ package screen;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.plaf.FontUIResource;
 import object.Pokemon;
 import object.Trainer;
+
+import static screen.Board.mainCharacter;
 
 /**
  * @author Thomas
  */
 public class Board extends JFrame {
-
-    private static final long serialVersionUID = 1L;
-//    private static String OS = System.getProperty("os.name").toLowerCase();
-//    private static String ROOT = System.getProperty("user.dir");
+    private static final long serialVersionUID = 800417746482024105L;
+    public static final String OS = System.getProperty("os.name").toLowerCase();
+    public static final String ROOT = System.getProperty("user.dir");
+    public static Trainer mainCharacter;
     
-    public Board() throws IOException {
-        Trainer mainCharacter = new Trainer();
+    protected static final int FRAME_WIDTH = 512;
+    protected static final int FRAME_HEIGHT = 384;
+    protected static final int SPRITE_DIM = 144;
+    public static final double INTEGER = 1;
+    public static final double HALF_FLOAT = 0.5;
+    public static final double QUARTER_FLOAT = 0.25;
+    public static final double EIGHTH_FLOAT = 0.125;
+    public static final double HALF = 2;
+    public static final double QUARTER = 4;
+    public static final double EIGHTH = 8;
+    public static final double NULL = 0;
+    protected static int FRAME_DIM = 1;
+    
+    protected static final int A_BTN = KeyEvent.VK_Z;
+    protected static final int B_BTN = KeyEvent.VK_X;
+    protected static final int L_BTN = KeyEvent.VK_A;
+    protected static final int R_BTN = KeyEvent.VK_S;
+    protected static final int START_BTN = KeyEvent.VK_SHIFT;
+    protected static final int SELECT_BTN = KeyEvent.VK_CONTROL;
+    protected static final int LEFT_BTN = KeyEvent.VK_LEFT;
+    protected static final int RIGHT_BTN = KeyEvent.VK_RIGHT;
+    protected static final int UP_BTN = KeyEvent.VK_UP;
+    protected static final int DOWN_BTN = KeyEvent.VK_DOWN;
+    
+    private static SplashScreen splashScreen;
+    private final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
+    private final GraphicsDevice device = env.getDefaultScreenDevice();
+    
+    private final boolean isFull = false;
+    private boolean screenFunct = true;
+    public Board board;
+
+    public Board(String name, Trainer main) throws IOException {
+        Timer timer = new Timer(50, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                requestFocus();
+            }
+        });
+//        timer.start();
+        putUI();
+        centerFrame((JFrame) this);
         
-        Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-//        Pokemon gyarados = new Pokemon(162, 18, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon umbreon = new Pokemon(197, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon ampharos = new Pokemon(181, 1, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        Pokemon shuckle = new Pokemon(213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-        mainCharacter.getParty().addPkmnToParty(gyarados);
-        mainCharacter.getParty().addPkmnToParty(mewtwo);
-        mainCharacter.getParty().addPkmnToParty(charizard);
-        mainCharacter.getParty().addPkmnToParty(umbreon);
-        mainCharacter.getParty().addPkmnToParty(ampharos);
-        mainCharacter.getParty().addPkmnToParty(shuckle);
+        Pokemon enemy = new Pokemon(43, 36, true, null, null);
         
-//        Pokemon enemy = new Pokemon(43, 36, true, null, null);
-        Trainer rival = new Trainer();
+        Trainer rival = new Trainer("Dumb");
         Pokemon gengar = new Pokemon(94, 70, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon ariados = new Pokemon(168, 40, false, mainCharacter.getHexID(), mainCharacter.getOctID());
         Pokemon persian = new Pokemon(53, 20, false, mainCharacter.getHexID(), mainCharacter.getOctID());
@@ -46,43 +78,80 @@ public class Board extends JFrame {
         rival.getParty().addPkmnToParty(gengar);
         rival.getParty().addPkmnToParty(ariados);
         
-        putUI();
+//        final BattleBoard battleBoard = new BattleBoard(main, enemy, 1);
+        final BattleBoard battleBoard = new BattleBoard(main, rival, 1);
+
+//        final StatsBoard statsBoard = new StatsBoard(main);
         
-//        final BattleBoard battleBoard = new BattleBoard(mainCharacter, enemy);
-        final BattleBoard battleBoard = new BattleBoard(mainCharacter, rival);
-        final StatsBoard statsBoard = new StatsBoard(mainCharacter);
+        this.setSize(FRAME_WIDTH*FRAME_DIM, FRAME_HEIGHT*FRAME_DIM);
+        System.out.println((FRAME_WIDTH*FRAME_DIM)+" "+(FRAME_HEIGHT*FRAME_DIM));
+        this.setTitle(name);
+        this.setFocusable(true);
+        this.requestFocusInWindow();
+        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        this.setResizable(false);           
+        this.add(battleBoard);
+        this.pack();
         
-        final JFrame frame = new GameFrame("Test");
-        frame.addKeyListener(new KeyListener() {
+        addKeyListener(new KeyListener() {
             @Override
             public void keyPressed(KeyEvent event) {
-                char ch = event.getKeyChar();
-                System.out.println(ch);
-                if (ch == '1') {
-                    battleBoard.setTrainer(statsBoard.returnTrainer());
-                    frame.remove(statsBoard);
-                    frame.add(battleBoard);
-                } else if (ch == '2') {
-                    statsBoard.setTrainer(battleBoard.returnTrainer());
-                    statsBoard.refresh();
-                    frame.remove(battleBoard);
-                    frame.add(statsBoard);
+                switch (event.getKeyCode()) {
+                    case KeyEvent.VK_F:
+//                        if (getExtendedState() != JFrame.MAXIMIZED_BOTH) {
+//                        if (!isFull) {
+//                            device.setFullScreenWindow(board);
+//                            setExtendedState(JFrame.MAXIMIZED_BOTH);
+//                            setUndecorated(true);
+//                            setVisible(true);
+//                            isFull = true;
+//                        } else {
+//                            device.setFullScreenWindow(null);
+//                            setExtendedState(0);
+//                            setUndecorated(false);
+//                            setVisible(true);
+//                            isFull = false;
+//                        }
+                        break;
+                    case KeyEvent.VK_F12:
+                        setVisible(false);
+                        if (FRAME_DIM != 1) {
+                            FRAME_DIM = 1;
+                        } else {
+                            FRAME_DIM = 2;
+                        }
+                        battleBoard.changeGraphic(FRAME_DIM);
+                        centerFrame((JFrame) event.getSource());
+                        pack();
+                        setVisible(true);
+                        break;
+                    case KeyEvent.VK_ESCAPE:
+                        //http://stackoverflow.com/questions/1234912/how-to-programmatically-close-a-jframe
+                        dispatchEvent(new WindowEvent((Window) event.getSource(), WindowEvent.WINDOW_CLOSING));
+                        setVisible(false); //you can't see me!
+                        dispose(); //Destroy the JFrame object
+                    default:
+                        screenFunct = false;
+                        break;
                 }
-                frame.revalidate();
-                frame.repaint();
-                frame.setFocusable(true);
-                frame.requestFocusInWindow();
             }
 
             @Override
-            public void keyTyped(KeyEvent e) {}
+            public void keyTyped(KeyEvent event) {
+            }
+
             @Override
-            public void keyReleased(KeyEvent e) {}
+            public void keyReleased(KeyEvent event) {
+                if (!screenFunct) {
+                    battleBoard.checkKey(event);
+                    screenFunct = true;
+                }
+            }
         });
-        frame.setSize(statsBoard.getWidth(), statsBoard.getHeight());
-        frame.add(battleBoard);
-        frame.pack();
-        frame.setVisible(true);
+        this.setVisible(true);
+        
+        this.setCursor(this.getToolkit().createCustomCursor(
+            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
     }
 
     public static void main(String[] args) {
@@ -90,19 +159,35 @@ public class Board extends JFrame {
             @Override
             public void run() {
                 try {
-                    Board board = new Board();
-                } catch (IOException e) {
+                    mainCharacter = new Trainer("Fat_Ass");
+
+                    Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon umbreon = new Pokemon(196, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon ampharos = new Pokemon(181, 10, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon shuckle = new Pokemon(213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    mainCharacter.getParty().addPkmnToParty(gyarados);
+                    mainCharacter.getParty().addPkmnToParty(charizard);
+                    mainCharacter.getParty().addPkmnToParty(mewtwo);
+                    mainCharacter.getParty().addPkmnToParty(umbreon);
+                    mainCharacter.getParty().addPkmnToParty(ampharos);
+                    mainCharacter.getParty().addPkmnToParty(shuckle);
+                    
+                    splashScreen = new SplashScreen("test", mainCharacter);
+                } catch (Exception e) {
                 }
             }
         });
     }
+
     private void putUI() {
         try {
             Color bgc = new Color(0, 255, 0);
-            Color fgc = new Color(255, 0, 0);
-            Font f = createFont();
+//            Color fgc = new Color(255, 0, 0);
+//            Font f = createFont();
 //            setUIFont(new javax.swing.plaf.FontUIResource(f));
-            
+
 //            UIManager.put("Button.font", f);
 //            UIManager.put("ToggleButton.font", f);
 //            UIManager.put("RadioButton.font", f);
@@ -134,7 +219,7 @@ public class Board extends JFrame {
 //            UIManager.put("ToolBar.font", f);
 //            UIManager.put("ToolTip.font", f);
 //            UIManager.put("Tree.font", f);
-            
+
 //            UIManager.put("control", new Color(255, 255, 255, 0));
             UIManager.put("info", new Color(255, 255, 255, 0)); //remove
 //            UIManager.put("nimbusAlertYellow", bgc);
@@ -149,12 +234,12 @@ public class Board extends JFrame {
 //            UIManager.put("nimbusSelectedText", bgc);
             UIManager.put("nimbusSelectionBackground", new Color(40, 40, 40));
 //            UIManager.put("text", bgc);
-            
-            UIManager.put("activeCaption", bgc);
-            UIManager.put("background", bgc);
-            UIManager.put("controlDkShadow", bgc);
-            UIManager.put("controlHighlight", bgc);
-            UIManager.put("controlLHighlight", fgc);
+
+//            UIManager.put("activeCaption", bgc);
+//            UIManager.put("background", bgc);
+//            UIManager.put("controlDkShadow", bgc);
+//            UIManager.put("controlHighlight", bgc);
+//            UIManager.put("controlLHighlight", fgc);
 //            UIManager.put("controlText", fgc);
 //            UIManager.put("desktop", fgc);
 //            UIManager.put("inactiveCaption", fgc);
@@ -170,91 +255,43 @@ public class Board extends JFrame {
 //            UIManager.put("textHighlight", fgc);
 //            UIManager.put("textHighlightText", fgc);
 //            UIManager.put("textInactiveText", fgc);
-
-//            UIManager.put("TabbedPane.shadow", fgc);
-//            UIManager.put("TabbedPane.darkShadow", fgc);
-//            UIManager.put("TabbedPane.light", fgc);
-//            UIManager.put("TabbedPane.highlight", fgc);
-//            UIManager.put("TabbedPane.tabAreaBackground", fgc);
-//            UIManager.put("TabbedPane.unselectedBackground", fgc);
-//            UIManager.put("TabbedPane.background", bgc);
-//            UIManager.put("TabbedPane.foreground", bgc);
-//            UIManager.put("TabbedPane.focus", fgc);
-//            UIManager.put("TabbedPane.contentAreaColor", fgc);
-//            UIManager.put("TabbedPane.selected", fgc);
-//            UIManager.put("TabbedPane.selectHighlight", fgc);
-//            UIManager.put("TabbedPane.borderHightlightColor", fgc);
-            
-//            UIManager.put("TabbedPane:TabbedPaneTabArea[Disabled].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled+MouseOver].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled+Pressed].backgroundPainter", bgc);
-//            UIManager.put("TabbedPane:TabbedPaneTabArea[Enabled].backgroundPainter", bgc);
-//            
-//            UIManager.put("TabbedPane:TabbedPaneTab[Disabled+Selected].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Disabled].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled+MouseOver].backgroundPainter", bgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled+Pressed].backgroundPainter", bgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Enabled].backgroundPainter", bgc);
-//            
-//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+MouseOver+Selected].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+Pressed+Selected].backgroundPainter", bgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Focused+Selected].backgroundPainter", fgc);
-//            
-//            UIManager.put("TabbedPane:TabbedPaneTab[MouseOver+Selected].backgroundPainter", fgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Pressed+Selected].backgroundPainter", bgc);
-//            UIManager.put("TabbedPane:TabbedPaneTab[Selected].backgroundPainter", fgc);
-            
             for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     UIManager.setLookAndFeel(info.getClassName());
                     break;
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) { }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+        }
     }
-    
+
     public Font createFont() {
         Font f = null;
         try {
-            File file = new File(getClass().getClassLoader().getResource("res/font/font.ttf").getFile());
+            File file = new File(Board.ROOT + "/resources/font/font.ttf");
             f = Font.createFont(Font.TRUETYPE_FONT, file);
             f = f.deriveFont(Font.PLAIN, 16);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(f);
-        } catch (IOException | FontFormatException ex) { }
+        } catch (IOException | FontFormatException ex) {
+        }
         return f;
     }
-    
     public static void setUIFont(javax.swing.plaf.FontUIResource f) {
         java.util.Enumeration keys = UIManager.getDefaults().keys();
         while (keys.hasMoreElements()) {
             Object key = keys.nextElement();
-            Object value = UIManager.get (key);
+            Object value = UIManager.get(key);
             if (value != null && value instanceof javax.swing.plaf.FontUIResource) {
                 UIManager.put(key, f);
             }
         }
     }
-}
-
-class GameFrame extends JFrame {
-    public GameFrame(String name) {
-        this.setTitle(name);
-        centerFrame(this);
-        this.setFocusable(true);
-        this.requestFocusInWindow();
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);
-        
-//        this.setCursor(this.getToolkit().createCustomCursor(
-//            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
-    }
-    
     private void centerFrame(JFrame frame) {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point centerPoint = ge.getCenterPoint();
-        int dx = centerPoint.x - 500;
-        int dy = centerPoint.y - 300;
+        int dx = centerPoint.x - (FRAME_WIDTH*FRAME_DIM)/2;
+        int dy = centerPoint.y - (FRAME_HEIGHT*FRAME_DIM)/2;
         frame.setLocation(dx, dy);
     }
 }

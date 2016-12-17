@@ -5,8 +5,8 @@ import java.util.ArrayList;
  * @author Thomas
  */
 public class Bag {
-    private int maxSpace;
-    private int maxWeight;
+    private final int maxSpace;
+    private final int maxWeight;
     public int actualSpace;
     public int actualWeight;
 

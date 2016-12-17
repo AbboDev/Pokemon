@@ -1,10 +1,5 @@
 package object;
 
-import java.awt.Component;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Image;
-import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -12,9 +7,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
-import javax.imageio.ImageIO;
-import javax.swing.ImageIcon;
 import object.Move.StatsOfAttacks;
+import screen.Board;
 
 /**
  * @author Thomas
@@ -205,11 +199,11 @@ public class Pokemon {
     }
     
     private void assignFile() {
-        MOVES = new File(classLoader.getResource("res/database/move.csv").getFile());
-        KANTO = new File(classLoader.getResource("res/database/kanto.csv").getFile());
-        KANTO_MOVE = new File(classLoader.getResource("res/database/kantoMove.csv").getFile());
-        JOHTO = new File(classLoader.getResource("res/database/johto.csv").getFile());
-        JOHTO_MOVE = new File(classLoader.getResource("res/database/johtoMove.csv").getFile());
+        MOVES = new File(Board.ROOT+"/resources/database/move.csv");
+        KANTO = new File(Board.ROOT+"/resources/database/kanto.csv");
+        KANTO_MOVE = new File(Board.ROOT+"/resources/database/kantoMove.csv");
+        JOHTO = new File(Board.ROOT+"/resources/database/johto.csv");
+        JOHTO_MOVE = new File(Board.ROOT+"/resources/database/johtoMove.csv");
     }
     
     //Create a random Pokemon from .CSV
@@ -391,7 +385,7 @@ public class Pokemon {
     }
     public final void assignMove(File csvMoves) throws IOException {
         String line, split = ";", splitMove = "#";
-        BufferedReader bufferMove = null;
+        BufferedReader bufferMove;
         
         bufferMove = new BufferedReader(new FileReader(csvMoves));
         while ((line = bufferMove.readLine()) != null) {
@@ -746,52 +740,24 @@ public class Pokemon {
         status = Status.KO;
     }
     
-    public ImageIcon getSprite(String path, int width, int height, boolean mirror, boolean sex) {
-        String imagePath = getImagePath(path, sex);
-        BufferedImage image = loadImage(imagePath, path);
-        ImageIcon imageIcon;
-        if (!mirror) {
-            imageIcon = new ImageIcon(new ImageIcon(image).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
-        } else {
-            imageIcon = new MirrorImageIcon(new ImageIcon(image).getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH));
+    public static String getImagePath(ArrayList<Boolean> cond, int ID, String dir) {
+        String path = Board.ROOT+"/resources/"+dir+"/";
+        if (cond.get(0)) { //is shiny
+            boolean checkF;
+            File f = new File(path+"shiny/"+ID+".png");
+            checkF = f.exists();
+            if (checkF) path += "shiny/";
         }
-        return imageIcon;
-    }
-    private String getImagePath(String sprite, boolean sex) {
-        String path = "/";
-        if (this.getIfShiny()) {
-            boolean checkS;
-            checkS = new File(sprite+"shiny/"+ID+".png").exists();
-            if (checkS) {
-                path += "shiny/";
-            } 
-        }
-        if (sex) {
-            if (!this.getIfMale()) {
+        if (!cond.get(1)) { //has sex
+            if (cond.get(2)) { //is female
                 boolean checkF;
-                File f = new File(sprite+path+"female/"+ID+".png");
+                File f = new File(path+"female/"+ID+".png");
                 checkF = f.exists();
-                if (checkF) {
-                    path += "female/";
-                }
+                if (checkF) path += "female/";
             }
         }
-        String image = sprite + path + ID + ".png";
+        String image = path + ID + ".png";
         return image;
-    }
-    private BufferedImage loadImage(String path, String sprite) {
-        BufferedImage buff;
-        try {
-            buff = ImageIO.read(classLoader.getResourceAsStream(path));
-        } catch (IOException e) {
-            try {
-                String newPath = getImagePath(sprite, false);
-                buff = ImageIO.read(classLoader.getResourceAsStream(newPath));
-            } catch (Exception ex) {
-                return null;
-            }
-        }
-        return buff;
     }
     
     public int getNextLevelExperience() {
@@ -1104,24 +1070,3 @@ public class Pokemon {
         return tempEvo;
     }
 } 
-/**
- * This class return an instance of image
- * which is horizontaly flip
- * http://stackoverflow.com/questions/1708011/create-a-imageicon-that-is-the-mirror-of-another-one
- */
-@SuppressWarnings("serial")
-class MirrorImageIcon extends ImageIcon {
-
-    public MirrorImageIcon(Image filename) {
-    	super(filename);
-    }
-
-    @Override
-    public synchronized void paintIcon(Component c, Graphics g, int x, int y) {
-    	Graphics2D g2 = (Graphics2D)g.create();
-    	g2.translate(getIconWidth(), 0);
-    	g2.scale(-1, 1);
-    	super.paintIcon(c, g2, -x, y);
-    }
-
-}
