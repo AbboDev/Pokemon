@@ -1,9 +1,8 @@
 package screen;
 
+import custom_texture.ExpandPanel;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
@@ -11,10 +10,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.UIManager.LookAndFeelInfo;
-import object.Pokemon;
-import object.Trainer;
-
-import static screen.Board.mainCharacter;
+import objects.Pokemon;
+import objects.Trainer;
 
 /**
  * @author Thomas
@@ -58,12 +55,12 @@ public class Board extends JFrame {
     public Board board;
 
     public Board(String name, Trainer main) throws IOException {
-        Timer timer = new Timer(50, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                requestFocus();
-            }
-        });
+//        Timer timer = new Timer(50, new ActionListener() {
+//            @Override
+//            public void actionPerformed(ActionEvent e) {
+//                requestFocus();
+//            }
+//        });
 //        timer.start();
         putUI();
         centerFrame((JFrame) this);
@@ -78,24 +75,24 @@ public class Board extends JFrame {
         rival.getParty().addPkmnToParty(gengar);
         rival.getParty().addPkmnToParty(ariados);
         
-//        final BattleBoard battleBoard = new BattleBoard(main, enemy, 1);
-        final BattleBoard battleBoard = new BattleBoard(main, rival, 1);
+        final BattleBoard battleBoard = new BattleBoard(main, rival/*enemy*/, 1);
 
 //        final StatsBoard statsBoard = new StatsBoard(main);
         
         this.setSize(FRAME_WIDTH*FRAME_DIM, FRAME_HEIGHT*FRAME_DIM);
-        System.out.println((FRAME_WIDTH*FRAME_DIM)+" "+(FRAME_HEIGHT*FRAME_DIM));
+//        System.out.println((FRAME_WIDTH*FRAME_DIM)+" "+(FRAME_HEIGHT*FRAME_DIM));
         this.setTitle(name);
         this.setFocusable(true);
         this.requestFocusInWindow();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setResizable(false);           
-        this.add(battleBoard);
+        this./*getContentPane().*/add(battleBoard);
         this.pack();
         
         addKeyListener(new KeyListener() {
             @Override
             public void keyPressed(KeyEvent event) {
+//                if ()
                 switch (event.getKeyCode()) {
                     case KeyEvent.VK_F:
 //                        if (getExtendedState() != JFrame.MAXIMIZED_BOTH) {
@@ -114,16 +111,19 @@ public class Board extends JFrame {
 //                        }
                         break;
                     case KeyEvent.VK_F12:
-                        setVisible(false);
-                        if (FRAME_DIM != 1) {
-                            FRAME_DIM = 1;
-                        } else {
-                            FRAME_DIM = 2;
+                        System.out.println(getCurrentBoardLock());
+                        if (!getCurrentBoardLock()) {
+                            setVisible(false);
+                            if (FRAME_DIM != 1) {
+                                FRAME_DIM = 1;
+                            } else {
+                                FRAME_DIM = 2;
+                            }
+                            battleBoard.changeGraphic(FRAME_DIM);
+                            centerFrame((JFrame) event.getSource());
+                            pack();
+                            setVisible(true);
                         }
-                        battleBoard.changeGraphic(FRAME_DIM);
-                        centerFrame((JFrame) event.getSource());
-                        pack();
-                        setVisible(true);
                         break;
                     case KeyEvent.VK_ESCAPE:
                         //http://stackoverflow.com/questions/1234912/how-to-programmatically-close-a-jframe
@@ -165,7 +165,7 @@ public class Board extends JFrame {
                     Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
                     Pokemon mewtwo = new Pokemon(150, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
                     Pokemon umbreon = new Pokemon(196, 34, false, mainCharacter.getHexID(), mainCharacter.getOctID());
-                    Pokemon ampharos = new Pokemon(181, 10, false, mainCharacter.getHexID(), mainCharacter.getOctID());
+                    Pokemon ampharos = new Pokemon(181, 20, false, mainCharacter.getHexID(), mainCharacter.getOctID());
                     Pokemon shuckle = new Pokemon(213, 62, false, mainCharacter.getHexID(), mainCharacter.getOctID());
                     mainCharacter.getParty().addPkmnToParty(gyarados);
                     mainCharacter.getParty().addPkmnToParty(charizard);
@@ -179,6 +179,22 @@ public class Board extends JFrame {
                 }
             }
         });
+    }
+    
+    private boolean getCurrentBoardLock() {
+        for (Component comp : getRootPane().getLayeredPane().getComponents()) {
+            if (comp instanceof Container) {
+                Container cont = (Container) comp;
+                for (Component comp2 : cont.getComponents()) {
+                    if (comp2 instanceof ExpandPanel) {
+                        ExpandPanel cont2 = (ExpandPanel) comp2;
+                        System.out.println(cont2.getClass());
+                        return cont2.lock;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private void putUI() {

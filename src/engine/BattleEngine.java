@@ -2,16 +2,23 @@ package engine;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
-import object.BagItem;
-import object.Pokemon;
-import object.Trainer;
-import object.Move;
+import objects.BagItem;
+import objects.Pokemon;
+import objects.Trainer;
+import objects.Move;
+import objects.Move.StatsOfAttacks;
+
+import static objects.Pokemon.Status.*;
 
 /**
  * @author Thomas
  */
 public class BattleEngine {
+    private static final int BASIC_POWER = 40;
+    
     public enum Weather {
         Normal, Cloud, Sunny, Rainy,
         Snow, Hail, SandStorm, Fog
@@ -19,12 +26,19 @@ public class BattleEngine {
     public enum Arena {
         Normal, Cave, Aerial, Submarine
     };
+    public enum Key {
+        Attack, Defense, CountHit, KO,
+        Critical, Already, Weather, Switch,
+        Damage, Nothing, Effect, Status, Stats,
+        WeatherStart
+    };
     
     private final Calendar calendar;
     private final int numberOfPokemon;
     private final ArrayList<Pokemon> orderOfAttack = new ArrayList<>();
     private final ArrayList<Move> moveOrder = new ArrayList<>();
     private final ArrayList<Integer> damage;
+    private final Map<Key, String> actionText;
     private Weather weather;
     private int weatherClock;
     private final Arena arena;
@@ -43,6 +57,7 @@ public class BattleEngine {
      */
     public BattleEngine(int number, Weather weather, Arena arena, boolean isTrainer) {
         weatherClock = 0;
+        round = 0;
         numberOfPokemon = number;
         if (weather != null) {
             this.weather = weather;
@@ -56,8 +71,10 @@ public class BattleEngine {
         }
         this.isTrainer = isTrainer;
         calendar = Calendar.getInstance();
+        System.out.println(calendar.getTime());
         rand = new Random();
         damage = new ArrayList<>();
+        actionText = new HashMap<>();
     }
 
     /**
@@ -68,6 +85,8 @@ public class BattleEngine {
      * @param enemyMove
      */
     public void setPriority(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
+        ++round; System.out.println("Round "+round);
+        System.out.println("Round weather "+weatherClock);
         if (numberOfPokemon == 2)
             calcSpeedPriority2(playerPkmn, playerMove, enemyPkmn, enemyMove);
         else
@@ -125,10 +144,20 @@ public class BattleEngine {
         return orderOfAttack.get(index);
     }
     
+    /**
+     * 
+     */
     public void resetDamage() {
         damage.clear();
     }
     
+    /**
+     * 
+     * @param playerPkmn
+     * @param playerMove
+     * @param enemyPkmn
+     * @param enemyMove 
+     */
     public void changeOrder(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
         if (playerPkmn != null) {
             if (isFirst(playerPkmn)) {
@@ -150,94 +179,93 @@ public class BattleEngine {
         }
     }
     
+    //
     private boolean isFirst(Pokemon pkmn) {
         return pkmn == orderOfAttack.get(0);
     }
 
+    //
     private void action(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
         int n = move.getHitMin();
         if (move.getHitMin() > 1) {
             if (move.getHitMax() != move.getHitMin()) {
                 n = rand.nextInt((((move.getHitMax() - move.getHitMin()))+1)+move.getHitMin());
-                System.out.println(n+"");
             }
         }
         for (int i = 0; i < n; ++i) {
             if (pkmnATK.getStatus() != Pokemon.Status.KO) {
                 if (pkmnATK.getRoundSLP() == 0 && pkmnATK.getStatus() == Pokemon.Status.Asleep) {
                     pkmnATK.setStatus(Pokemon.Status.OK);
-                    System.out.println(pkmnATK.getSurname()+" wakes up!");
+                    actionText.put(Key.Attack, pkmnATK.getSurname()+" wakes up!");
                 }
                 if (pkmnATK.getRoundCNF() == 0 && pkmnATK.getIfConfused()) {
                     pkmnATK.setIfConfused(false);
-                    System.out.println(pkmnATK.getSurname()+" gets out of confusion!");
+                    actionText.put(Key.Attack, pkmnATK.getSurname()+" gets out of confusion!");
                 }
                 if (!canAttackIfFrozen(pkmnATK)) {
-                    System.out.println(pkmnATK.getSurname() + " is frozen solid!"); break;
+                    actionText.put(Key.Attack, pkmnATK.getSurname() + " is frozen solid!"); break;
                 } else if (!canAttackIfParalyzed(pkmnATK)) {
-                    System.out.println(pkmnATK.getSurname() + " is paralyzed!"); break;
+                    actionText.put(Key.Attack, pkmnATK.getSurname() + " is paralyzed! It can't move!"); break;
                 } else if (!canAttackIfInfatuated(pkmnATK)) {
-                    System.out.println(pkmnATK.getSurname()+" is infatuated of "+pkmnDEF.getSurname()); break;
+                    actionText.put(Key.Attack, pkmnATK.getSurname()+" is infatuated of "+pkmnDEF.getSurname()); break;
                 } else if (pkmnATK.getStatus() == Pokemon.Status.Asleep) {
-                    System.out.println(pkmnATK.getSurname()+" is sleeping..."); break;
+                    actionText.put(Key.Attack, pkmnATK.getSurname()+" is fast asleep!"); break;
                 } else if (pkmnATK.getIfFlinched()) {
-                    System.out.println(pkmnATK.getSurname()+" flinched!"); break;
+                    actionText.put(Key.Attack, pkmnATK.getSurname()+" flinched!"); break;
                 } else {
                     if (canAttackIfConfused(pkmnATK)) {
                         if (!"Switch".equals(move.getName())) {
-                            System.out.println(pkmnATK.getSurname() + " use " + move.getName());
+                            actionText.put(Key.Attack, pkmnATK.getSurname()+" use "+move.getName()+".");
                         }
-
                         if (move.getType() != Move.TypeOfAttacks.Status) {
                             damage.add(calcDamage(pkmnATK, pkmnDEF, move));
-                            System.out.println(pkmnDEF.getSurname() + " loses " + damage);
+                            //feature (?)
+                            actionText.put(Key.Defense, pkmnDEF.getSurname()+" loses "+damage+".");
                             pkmnDEF.takeDamage(damage.get(i));
                         }
-                        calcEffect(pkmnATK, pkmnDEF, move);
-                        setWeather(move);
+                        boolean noChange1 = calcEffect(pkmnATK, pkmnDEF, move);
+                        boolean noChange2 = setWeather(move);
+                        if (!noChange1 && !noChange2 && damage.isEmpty()) {
+                            if (!"Switch".equals(move.getName())) {
+                                actionText.put(Key.Nothing, "Nothing happened...");
+                            }
+                        }
                     } else if (!canAttackIfConfused(pkmnATK)) {
                         damage.add(takeRecoilFromConfusion(pkmnATK));
                         pkmnATK.takeDamage(damage.get(i));
-                        System.out.println(pkmnATK.getSurname() + " hit itself on its confusion!");
+                        actionText.put(Key.Attack, pkmnATK.getSurname() + " hit itself on its confusion!");
                         break;
                     }
                 }
             }
         }
         if (n > 1) {
-            System.out.println("Hit "+n+" times!");
+            actionText.put(Key.CountHit, "Hit "+n+" times!");
         }
     }
     
+    //
     private ArrayList<Pokemon> checkIfKO(Pokemon pkmnATK, Pokemon pkmnDEF) {
         ArrayList<Pokemon> pkmn = new ArrayList<>();
-        if (pkmnATK.getHP() <= 0 && pkmnDEF.getHP() <= 0) {
-            pkmnATK.defeat(); pkmnDEF.defeat();
-            System.out.println(pkmnATK.getSurname() + " is defeat.");
-            System.out.println(pkmnDEF.getSurname() + " is defeat.");
-            pkmn.add(pkmnATK); pkmn.add(pkmnDEF);
-            return pkmn;
-        } else {
-            if (pkmnATK.getHP() <= 0) {
+            if (pkmnATK.getStat("HP") <= 0) {
                 pkmnATK.defeat(); pkmn.add(pkmnATK);
-                System.out.println(pkmnATK.getSurname() + " is defeat.");
+                actionText.put(Key.KO, pkmnATK.getSurname() + " is defeat.");
                 return pkmn;
-            } else if (pkmnDEF.getHP() <= 0) {
+            } if (pkmnDEF.getStat("HP") <= 0) {
                 pkmnDEF.defeat(); pkmn.add(pkmnDEF);
-                System.out.println(pkmnDEF.getSurname() + " is defeat.");
+                actionText.put(Key.KO, pkmnDEF.getSurname() + " is defeat.");
                 return pkmn;
             }
-        }
         return null;
     }
 
+    //
     private void calcSpeedPriority2(Pokemon playerPkmn, Move playerMove, Pokemon enemyPkmn, Move enemyMove) {
-        System.out.println(playerPkmn.getSurname()+":"+playerPkmn.getHP()+" - "+enemyPkmn.getSurname()+":"+enemyPkmn.getHP());
-        int pkmnSPD1 = playerPkmn.getTempSpd();
+        int pkmnSPD1 = playerPkmn.getTempBaseStat(StatsOfAttacks.Spd);
         if (playerPkmn.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD1 /= 4;
         }
-        int pkmnSPD2 = enemyPkmn.getTempSpd();
+        int pkmnSPD2 = enemyPkmn.getTempBaseStat(StatsOfAttacks.Spd);
         if (enemyPkmn.getStatus() == Pokemon.Status.Paralysis) {
             pkmnSPD2 /= 4;
         }
@@ -280,7 +308,8 @@ public class BattleEngine {
             }
         }
     }
-
+    
+    //
     private int calcDamage(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
         int maxCritical = 16;
         int random;
@@ -289,14 +318,14 @@ public class BattleEngine {
         double multiplier, N, modificator;
         double weatherMult = 1, itemMult = 1;
         if (move.getType() == Move.TypeOfAttacks.Physical) {
-            attack = pkmnATK.getTempAtk();
+            attack = pkmnATK.getTempBaseStat(StatsOfAttacks.Atk);
             if (pkmnATK.getStatus() == Pokemon.Status.Burn) {
                 attack /= 2;
             }
-            defense = pkmnDEF.getTempDef();
+            defense = pkmnDEF.getTempBaseStat(StatsOfAttacks.Def);
         } else if (move.getType() == Move.TypeOfAttacks.Special) {
-            attack = pkmnATK.getTempSpAtk();
-            defense = pkmnDEF.getTempSpDef();
+            attack = pkmnATK.getTempBaseStat(StatsOfAttacks.Atk);
+            defense = pkmnDEF.getTempBaseStat(StatsOfAttacks.Def);
         }
         if (pkmnATK.getFirstType() == move.getMoveType() || pkmnATK.getSecondType() == move.getMoveType()) {
             STAB = 1.5;
@@ -319,7 +348,7 @@ public class BattleEngine {
             if (this.weather == Weather.Rainy) weatherMult = 1.5;
             else if (this.weather == Weather.Sunny) weatherMult = 0.5;
         } else if ("Solarbeam".equals(move.getName())) {
-            if (null != this.weather) switch (this.weather) {
+            if (this.weather != null) switch (this.weather) {
                 case Sunny:
                     weatherMult = 1;
                     break;
@@ -338,19 +367,24 @@ public class BattleEngine {
         random = rand.nextInt((maxCritical - 1) + 1) + 1;
         if (random == 1) {
             critical = 2;
-            System.out.println("Critical Hit!");
-            if (attack < pkmnATK.getAttack()) {
-                attack = pkmnATK.getAttack();
+            actionText.put(Key.Critical, "Critical Hit!");
+            if (attack < pkmnATK.getStat("Atk")) {
+                attack = pkmnATK.getStat("Atk");
             }
-            if (defense > pkmnDEF.getDefense()) {
-                defense = pkmnDEF.getDefense();
+            if (defense > pkmnDEF.getStat("Def")) {
+                defense = pkmnDEF.getStat("Def");
             }
         }
         multiplier = move.moveEffect(pkmnDEF.getFirstType(), pkmnDEF.getSecondType(), pkmnATK.getIfPowered());
+        if (multiplier == 0) actionText.put(Key.Effect, "It's not effective...");
+        else if (multiplier == 0.25) actionText.put(Key.Effect, "It's not really effective...");
+        else if (multiplier == 0.5) actionText.put(Key.Effect, "It's not very effective...!");
+        else if (multiplier == 2) actionText.put(Key.Effect, "It's effective!");
+        else if (multiplier == 4) actionText.put(Key.Effect, "It's super effective!!");
         N = (rand.nextInt((100 - 85) + 1) + 85);
         modificator = weatherMult * itemMult;
         
-        int damages = (int) ((((2 * pkmnATK.getLevel() + 10) * attack * move.getPower() / (250 * defense)) + 2)
+        int damages = (int) ((((2 * pkmnATK.getStat("Level") + 10) * attack * move.getPower() / (250 * defense)) + 2)
                 * multiplier * STAB * modificator * critical * (N /= 100));
         return damages;
     }
@@ -358,122 +392,184 @@ public class BattleEngine {
     //If the confusion flag is on, it receive a damage
     //from a move which has a power of 40 and no Type
     private int takeRecoilFromConfusion(Pokemon pkmn) {
-        double attack = pkmn.getTempAtk(), defense = pkmn.getTempDef();
+        double attack = pkmn.getTempBaseStat(StatsOfAttacks.Atk), defense = pkmn.getTempBaseStat(StatsOfAttacks.Def);
         int N = (rand.nextInt((100 - 85) + 1) + 85);
-        int damages = (int) ((((2 * pkmn.getLevel() + 10) * attack * 40 / (250 * defense)) + 2) * (N /= 100));
+        int damages = (int) ((((2 * pkmn.getStat("Level") + 10) * attack * BASIC_POWER / (250 * defense)) + 2) * (N /= 100));
         return damages;
     }
     
     //Controll if move dealt stats, status or other to self or other Pokemons
-    private void calcEffect(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
-        if (move.getStats()[0] != null) {
-            int N = (rand.nextInt((100 - 0) + 1) + 0);
-            if (N <= move.getStatsPercentage() || move.getStatsPercentage() == 100) {
-                if (move.getAreaOfStats() == Move.Area.Self) {
-                    pkmnATK.setTempStats(move);
-                } else {
-                    pkmnDEF.setTempStats(move);
+    private boolean calcEffect(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
+        Pokemon pkmn; boolean temp = false; int N;
+//        for (StatsOfAttacks stat: move.getStatLevelSet()) {
+//            if (stat != null) {
+                N = (rand.nextInt((100 - 0) + 1) + 0);
+                if (N <= move.getStatsPercentage() || move.getStatsPercentage() == 100) {
+                    printStats(pkmnATK, pkmnDEF, move);
+                    temp = true;
                 }
-            }
-        }
+//            }
+//        }
         if (move.getStatus() != null) {
-            int N = (rand.nextInt((100 - 0) + 1) + 0);
+            N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
-                if (move.getAreaOfStatus() == Move.Area.Self) {
-                    if (pkmnATK.getStatus() == Pokemon.Status.OK) {
-                        pkmnATK.setStatus(move);
-                    } else {
-                        System.out.println(pkmnATK.getSurname()+" is already "+pkmnATK.getStatus().toString());
-                    }
-                } else {
-                    if (pkmnDEF.getStatus() == Pokemon.Status.OK) {
-                        pkmnDEF.setStatus(move);
-                    } else {
-                        System.out.println(pkmnDEF.getSurname()+" is already "+pkmnDEF.getStatus().toString());
-                    }
-                }
+                printStatus(pkmnATK, pkmnDEF, move);
+                temp = true;
             }
         }
         if (move.getIfConfuse()) {
-            int N = (rand.nextInt((100 - 0) + 1) + 0);
+            N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
-                if (move.getAreaOfStatus() == Move.Area.Self) {
-                    if (!pkmnATK.getIfConfused()) {
-                        pkmnATK.setIfConfused(true);
-                    }
-                } else {
-                    if (!pkmnDEF.getIfConfused()) {
-                        pkmnDEF.setIfConfused(true);
-                    }
+                if (move.getAreaOfStatus() == Move.Area.Self) { pkmn = pkmnATK; }
+                else { pkmn = pkmnDEF; }
+                if (!pkmn.getIfConfused()) {
+                    pkmn.setIfConfused(true);
                 }
+                actionText.put(Key.Status, pkmn.getSurname()+" is confused!");
+                temp = true;
             }
         }
         if (move.getIfInfatuated()) {
             if ((pkmnATK.getIfAsessual() == true && pkmnDEF.getIfAsessual() == true) || 
                     (pkmnATK.getIfMale() != pkmnDEF.getIfMale())) {
-                int N = (rand.nextInt((100 - 0) + 1) + 0);
+                N = (rand.nextInt((100 - 0) + 1) + 0);
                 if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
-                    if (move.getAreaOfStatus() == Move.Area.Self) {
-                        if (!pkmnATK.getIfInfatuated()) {
-                            pkmnATK.setIfInfatuated(true);
-                        }
-                    } else {
-                        if (!pkmnDEF.getIfInfatuated()) {
-                            pkmnDEF.setIfInfatuated(true);
-                        }
+                    if (move.getAreaOfStatus() == Move.Area.Self) { pkmn = pkmnATK; }
+                    else { pkmn = pkmnDEF; }
+                    if (!pkmn.getIfInfatuated()) {
+                        pkmn.setIfInfatuated(true);
                     }
+                    temp = true;
                 }
             }
         } 
         if (move.getIfFlinch()) {
-            int N = (rand.nextInt((100 - 0) + 1) + 0);
+            N = (rand.nextInt((100 - 0) + 1) + 0);
             if (N <= move.getStatusPercentage() || move.getStatusPercentage() == 100) {
-                if (move.getAreaOfStatus() == Move.Area.Self) {
-                    if (!pkmnATK.getIfFlinched()) {
-                        pkmnATK.setIfFlinched(true);
-                    }
-                } else {
-                    if (!pkmnDEF.getIfFlinched()) {
-                        pkmnDEF.setIfFlinched(true);
-                    }
+                if (move.getAreaOfStatus() == Move.Area.Self) { pkmn = pkmnATK; }
+                else { pkmn = pkmnDEF; }
+                if (!pkmn.getIfFlinched()) {
+                    pkmn.setIfFlinched(true);
                 }
+                temp = true;
             }
-        } 
+        }
+        return temp;
     }
-    
-    //Set weather of Engine with the move
-    private void setWeather(Move move) {
-        if (move.getWeather() != null) {
-            switch (move.getWeather()) {
-                case Hail:
-                    weather = Weather.Hail;
-                    weatherClock = move.getWeatherRound();
-                    System.out.println(move.getWeather());
+    //
+    private void printStatus(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
+        String string; Pokemon pkmn;
+        if (move.getAreaOfStatus() == Move.Area.Self) { pkmn = pkmnATK; }
+        else { pkmn = pkmnDEF; }
+        
+        if (pkmn.getStatus() == Pokemon.Status.OK) {
+            pkmn.setStatus(move);
+            switch (pkmn.getStatus()) {
+                case Asleep:
+                    actionText.put(Key.Status, pkmn.getSurname()+" fell asleep...");
                     break;
-                case Rainy:
-                    weather = Weather.Rainy;
-                    weatherClock = move.getWeatherRound();
-                    System.out.println(move.getWeather());
+                case BadPoison:
+                    actionText.put(Key.Status, pkmn.getSurname()+" is badly poisoned!");
                     break;
-                case SandStorm:
-                    weather = Weather.SandStorm;
-                    weatherClock = move.getWeatherRound();
-                    System.out.println(move.getWeather());
+                case Burn:
+                    actionText.put(Key.Status, pkmn.getSurname()+" was burned!");
                     break;
-                case Sunny:
-                    weather = Weather.Sunny;
-                    weatherClock = move.getWeatherRound();
-                    System.out.println(move.getWeather());
+                case Freeze:
+                    actionText.put(Key.Status, pkmn.getSurname()+" was frozen solid!");
                     break;
-                case Reset:
-                    weather = Weather.Normal;
-                    weatherClock = move.getWeatherRound();
-                    System.out.println(move.getWeather());
+                case Paralysis:
+                    actionText.put(Key.Status, pkmn.getSurname()+" paralyzed!<br>It may unable to move!");
+                    break;
+                case Poison:
+                    actionText.put(Key.Status, pkmn.getSurname()+" was poisoned!");
                     break;
                 default:
                     break;
             }
+        } else {
+            string = pkmn.getSurname()+" is already ";
+            actionText.put(Key.Status, string+pkmn.getStatus());
         }
+    }
+    //
+    private void printStats(Pokemon pkmnATK, Pokemon pkmnDEF, Move move) {
+        String string = ""; Pokemon pkmn; char split = '§';
+        if (move.getAreaOfStatus() == Move.Area.Self) { pkmn = pkmnATK; }
+        else { pkmn = pkmnDEF; }
+        
+        for (Map.Entry<StatsOfAttacks, Integer> statLvl : move.getStatLevelSet()) {
+            if (statLvl.getValue() != 0) {
+                string += pkmn.getSurname()+"'s "+pkmn.getStatName(statLvl.getKey().toString()+"<br>");
+                if (pkmn.getLevelStats(statLvl.getKey()) >= 6) {
+                    actionText.put(Key.Stats, string+"won't go any higher!");
+                } else if (pkmn.getLevelStats(statLvl.getKey()) <= -6) {
+                    actionText.put(Key.Stats, string+"won't go any lower!");
+                } else {
+                    pkmn.setTempStats(move);
+                    switch (statLvl.getValue()) {
+                        case -3:
+                            actionText.put(Key.Stats, string+" severely fell!");
+                            break;
+                        case -2:
+                            actionText.put(Key.Stats, string+" harshly fell!");
+                            break;
+                        case -1:
+                            actionText.put(Key.Stats, string+" fell!");
+                            break;
+                        case 3:
+                            actionText.put(Key.Stats, string+" rose drastically!");
+                            break;
+                        case 2:
+                            actionText.put(Key.Stats, string+" rose sharply!");
+                            break;
+                        case 1:
+                            actionText.put(Key.Stats, string+" rose!");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    
+    //Set weather of Engine with the move
+    private boolean setWeather(Move move) {
+        boolean temp = false;
+        if (move.getWeather() != null) {
+            temp = true;
+            switch (move.getWeather()) {
+                case Hail:
+                    weather = Weather.Hail;
+                    weatherClock = move.getWeatherRound();
+                    actionText.put(Key.WeatherStart, "It started to hail!");
+                    break;
+                case Rainy:
+                    weather = Weather.Rainy;
+                    weatherClock = move.getWeatherRound();
+                    actionText.put(Key.WeatherStart, "It started to rain!");
+                    break;
+                case SandStorm:
+                    weather = Weather.SandStorm;
+                    weatherClock = move.getWeatherRound();
+                    actionText.put(Key.WeatherStart, "A sandstorm kicked up!");
+                    break;
+                case Sunny:
+                    weather = Weather.Sunny;
+                    weatherClock = move.getWeatherRound();
+                    actionText.put(Key.WeatherStart, "The sunlight turned harsh!");
+                    break;
+                case Reset:
+                    weather = Weather.Normal;
+                    weatherClock = move.getWeatherRound();
+                    actionText.put(Key.WeatherStart, "The weather became clear.");
+                    break;
+                default:
+                    temp = false;
+                    break;
+            }
+        }
+        return temp;
     }
     
     //When the turn end it calc relative modifiers
@@ -487,9 +583,57 @@ public class BattleEngine {
         playerPkmnRecoil = givePSNorBRNDamages(playerPkmn);
         enemyPkmnRecoil = givePSNorBRNDamages(enemyPkmn);
         if (weatherClock > 0) {
+            boolean stop = false;
             --weatherClock;
+            if (weatherClock == 0) {
+                stop = true;
+            }
+            printWeather(stop);
         }
         return checkIfKO(playerPkmn, enemyPkmn);
+    }
+    
+    private void printWeather(boolean stop) {
+        switch (weather) {
+            case Hail:
+                if (!stop) {
+                    actionText.put(Key.Weather, "Hail continues to fall.");
+                } else {
+                    actionText.put(Key.Weather, "The hail stopped.");
+                }
+                break;
+            case Rainy:
+                if (!stop) {
+                    actionText.put(Key.Weather, "Rain continues to fall.");
+                } else {
+                    actionText.put(Key.Weather, "The rain stopped.");
+                }
+                break;
+            case SandStorm:
+                if (!stop) {
+                    actionText.put(Key.Weather, "The sandstorm rages.");
+                } else {
+                    actionText.put(Key.Weather, "The sandstorm subsided.");
+                }
+                break;
+            case Sunny:
+                if (!stop) {
+                    actionText.put(Key.Weather, "The sunlight is strong.");
+                } else {
+                    actionText.put(Key.Weather, "The sunlight faded.");
+                }
+                break;
+//            case Normal:
+//                if (!stop) {
+//                    actionText.put(Key.Weather, "The weather became clear.");
+//                }
+//                break;
+            default:
+                break;
+        }
+        if (stop) {
+            weather = Weather.Normal;
+        }
     }
     
     //If Pokemon has malus it takes relative damage
@@ -498,20 +642,23 @@ public class BattleEngine {
             int statusDamage = 0;
             switch (pkmn.getStatus()) {
                 case Poison:
-                    statusDamage = pkmn.getMaxHP() / 8;
+                    statusDamage = pkmn.getStat("MaxHP") / 8;
+                    if (statusDamage == 0) statusDamage = 1;
                     pkmn.takeDamage(statusDamage);
-                    System.out.println("Poison inflict "+statusDamage);
+                    actionText.put(Key.Damage, pkmn.getSurname()+" is hurt by poison!");
                     break;
                 case BadPoison:
-                    statusDamage = (pkmn.getMaxHP() / 16) * pkmn.getRoundBadPSN();
+                    statusDamage = (pkmn.getStat("MaxHP") / 16) * pkmn.getRoundBadPSN();
+                    if (statusDamage == 0) statusDamage = pkmn.getRoundBadPSN();
                     pkmn.takeDamage(statusDamage);
-                    System.out.println("Bad Poison inflict "+statusDamage+" - "+pkmn.getRoundBadPSN());
+                    actionText.put(Key.Damage, pkmn.getSurname()+" is hurt by poison!");
                     pkmn.increaseRoundBPSN();
                     break;
                 case Burn:
-                    statusDamage = pkmn.getMaxHP() / 8;
+                    statusDamage = pkmn.getStat("MaxHP") / 8;
+                    if (statusDamage == 0) statusDamage = 1;
                     pkmn.takeDamage(statusDamage);
-                    System.out.println("Burn inflict "+statusDamage);
+                    actionText.put(Key.Damage, pkmn.getSurname()+" is hurt by its burn!");
                     break;
                 default:
                     break;
@@ -606,7 +753,7 @@ public class BattleEngine {
                 orderOfAttack.add(1, pkmnIn);
             }
         }
-        System.out.println("Go " + trn.getParty().getPkmn(0).getSurname());
+        actionText.put(Key.Switch, "Go " + trn.getParty().getPkmn(0).getSurname()+".");
     }
 
     /**
@@ -647,5 +794,31 @@ public class BattleEngine {
         moveOrder.clear();
         orderOfAttack.clear();
         playerPkmnRecoil = enemyPkmnRecoil = 0;
+    }
+    /**
+     *
+     * @param key
+     * @return
+     */
+    public String getActionText(Key key) {
+        if (actionText.containsKey(key)) {
+            return actionText.get(key);
+        } else {
+            return "";
+        }
+    }
+    /**
+     *
+     * @param key
+     * @return
+     */
+    public boolean isKeyContain(Key key) {
+        return actionText.containsKey(key);
+    }
+    /**
+     *
+     */
+    public void eraseAction() {
+        actionText.clear();
     }
 }

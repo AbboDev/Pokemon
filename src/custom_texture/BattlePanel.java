@@ -10,10 +10,10 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.Timer;
-import object.Pokemon;
+import objects.Pokemon;
 import screen.Board;
 
-import static object.Pokemon.Status.*;
+import static objects.Pokemon.Status.*;
 
 /**
  * @author Thomas
@@ -42,38 +42,34 @@ public class BattlePanel extends ExpandPanel {
         pokemon = pkmn;
         initComponents();
         ExpPanel = new JPanel();
+        setMinimumSize(new Dimension(200, 70));
+        setMaximumSize(new Dimension(400, 160));
         if (isPlayer) {
-            setPreferredSize(new Dimension((int) getMinimumSize().getWidth(),
-                    (int) getMinimumSize().getHeight()+
-                    (ExpPanel.getPreferredSize().height*DIM)));
+            setPreferredSize(new Dimension(200*DIM, 80*DIM));
             setSize(getPreferredSize());
             ExpPanel.setMaximumSize(new Dimension(400, 20));
             ExpPanel.setMinimumSize(new Dimension(200, 10));
             ExpPanel.setPreferredSize(new Dimension(200*DIM, 10*DIM));
-            ExpPanel.setOpaque(true);
             ExpPanel.setLayout(new BorderLayout());
-            ExpPanel.setBackground(Color.yellow);
             
             ExpBar = new JProgressBar();
-            ExpBar.setMaximumSize(new Dimension(390, 20));
-            ExpBar.setMinimumSize(new Dimension(195, 10));
-            ExpBar.setPreferredSize(new Dimension(195*DIM, 10*DIM));
             
-            GridBagConstraints gridBagConstraints;
-            gridBagConstraints = new java.awt.GridBagConstraints();
+            ExpPanel.add(ExpBar);
+            GridBagConstraints gridBagConstraints = new java.awt.GridBagConstraints();
+            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
             gridBagConstraints.gridx = 0;
             gridBagConstraints.gridy = 3;
-//            gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-//            gridBagConstraints.weightx = 1.0;
-//            gridBagConstraints.weighty = 1.0;
-            ExpPanel.add(ExpBar);
             add(ExpPanel, gridBagConstraints);
+        } else {
+            setPreferredSize(new Dimension(200*DIM, 70*DIM));
+            setSize(getPreferredSize());
         }
         expandComponent(DIM);
         setHit(false);
         setTimer(0, 0, 0);
         startThread();
         
+        printName(pokemon.getSurname());
         printHPBar(true);
         printLevel();
         printStat();
@@ -118,20 +114,23 @@ public class BattlePanel extends ExpandPanel {
     
     public final void printHPBar(boolean change) {
         if (change) {
-            HealtBar.setMaximum(pokemon.getMaxHP());
+            HealtBar.setMaximum(pokemon.getStat("MaxHP"));
         }
-        HealtBar.setValue(pokemon.getHP());
-        Healt.setText(pokemon.getHP()+"/"+pokemon.getMaxHP());
+        HealtBar.setValue(pokemon.getStat("HP"));
+        Healt.setText(pokemon.getStat("HP")+"/"+pokemon.getStat("MaxHP"));
+    }
+    
+    public final void printName(String name) {
+        Name.setText(name.toUpperCase());
     }
     
     public final void printLevel() {
         if (!pokemon.getIfAsessual()) {
             String sex;
             if (pokemon.getIfMale()) { sex = "Male"; } else { sex = "Female"; }
-            System.out.println(PATH+sex+".png");
             Gender.setIcon(SpriteImage.getScaledImage(SpriteImage.getImage(PATH+sex+".png"), ICON_SIZE*DIM));
         }
-        Level.setText("Lv. "+pokemon.getLevel()+"");
+        Level.setText("Lv. "+pokemon.getStat("Level")+"");
     }
     
     public final void printStat() {
@@ -173,10 +172,10 @@ public class BattlePanel extends ExpandPanel {
     public final void printExpBar(boolean change) {
         if (ExpBar != null) {
             if (change) {
-                ExpBar.setMinimum(pokemon.getLevelExperience(pokemon.getLevel()));
-                ExpBar.setMaximum(pokemon.getLevelExperience(pokemon.getLevel()+1));
+                ExpBar.setMinimum(pokemon.getLevelExperience(pokemon.getStat("Level")));
+                ExpBar.setMaximum(pokemon.getLevelExperience(pokemon.getStat("Level")+1));
             }
-            ExpBar.setValue(pokemon.getExp());
+            ExpBar.setValue(pokemon.getStat("Exp"));
             ExpBar.repaint();
         }
     }
@@ -234,9 +233,10 @@ public class BattlePanel extends ExpandPanel {
 
         setBackground(new java.awt.Color(75, 75, 75));
         setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        setMaximumSize(new java.awt.Dimension(400, 160));
-        setMinimumSize(new java.awt.Dimension(200, 70));
+        setMaximumSize(null);
+        setMinimumSize(null);
         setName(""); // NOI18N
+        setPreferredSize(null);
         setLayout(new java.awt.GridBagLayout());
 
         NamePanel.setMaximumSize(new java.awt.Dimension(400, 50));

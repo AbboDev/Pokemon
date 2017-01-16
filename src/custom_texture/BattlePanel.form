@@ -10,12 +10,6 @@
         <BevelBorder/>
       </Border>
     </Property>
-    <Property name="maximumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-      <Dimension value="[400, 160]"/>
-    </Property>
-    <Property name="minimumSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
-      <Dimension value="[200, 70]"/>
-    </Property>
     <Property name="name" type="java.lang.String" value="" noResource="true"/>
   </Properties>
   <AuxValues>

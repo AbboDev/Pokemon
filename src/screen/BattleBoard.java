@@ -7,16 +7,15 @@ import custom_texture.MovePanel;
 import custom_texture.PkmnPartyPanel;
 import custom_texture.SpritePanel;
 import engine.BattleEngine;
-import java.awt.Color;
-import java.awt.GridBagConstraints;
+import engine.BattleEngine.Key;
+import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.util.ArrayList;
-import object.Move;
-import object.Pokemon;
-import object.Trainer;
-
-import static object.Pokemon.Status.*;
+import objects.Move;
+import objects.Pokemon;
+import objects.Trainer;
+import static objects.Pokemon.Status.*;
 import static screen.Board.*;
 
 /**
@@ -25,7 +24,12 @@ import static screen.Board.*;
 public class BattleBoard extends ExpandPanel {
     private static final long serialVersionUID = -6244437515781556464L;
     private static final Move SWITCH_MOVE = new Move("Switch");
-    private final static int CURRENT_PKMN = 0;
+    private static final int DEFAULT_CLOCK = 50;
+    private static final int TEXT_CLOCK = 500;
+    private static final int CURRENT_PKMN = 0;
+    private static final int MIN_BOARD_WIDTH = 512;
+    private static final int MIN_BOARD_HEIGHT = 280;
+    
     private BattlePanel eBattlePanel, BattlePanel;
     private SpritePanel eSpritePanel, SpritePanel;
     private BattleTab BattleTabs;
@@ -73,9 +77,10 @@ public class BattleBoard extends ExpandPanel {
         DIM = dim;
         isTrainer = (enemy != null);
         battleEngine = new BattleEngine(2, null, null, isTrainer);
-        
+        setName("battleBoard");
         initBoard();
     }
+    
     private void initBoard() {
         firstTurn = true;
         playBattle = false;
@@ -89,10 +94,9 @@ public class BattleBoard extends ExpandPanel {
         selfSwitch = null;
         otherSwitch = null;
         
-        
         selfPokemon = self.getParty().getPkmn(CURRENT_PKMN);
-        otherHP = otherPokemon.getHP();
-        selfHP = selfPokemon.getHP();
+        otherHP = otherPokemon.getStat("HP");
+        selfHP = selfPokemon.getStat("HP");
         
         createBoard();
     }
@@ -102,7 +106,6 @@ public class BattleBoard extends ExpandPanel {
         expandComponent(DIM);
         
         printBasicBoard();
-        printAll();
         decleareThread();
     }
     
@@ -112,60 +115,52 @@ public class BattleBoard extends ExpandPanel {
             public synchronized void run() {
                 while (true) {
                     while (!playBattle) {
-                        try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                        try { Thread.sleep(DEFAULT_CLOCK); } catch (InterruptedException ex) { } //sleep
                     }
                     hideTabs(true);
                     if (firstTurn) {
                         otherMove = otherPokemon.getRandomMove(false,1);
                         battleEngine.setPriority(selfPokemon, selfMove, otherPokemon, otherMove);
-                        
-                        if (pkmnChoose) {
-                            switchPkmn();
-                        }
-                        otherHP = otherPokemon.getHP();
-                        selfHP = selfPokemon.getHP();
-                        defeatPkmn = battleEngine.firstMove(selfSwitch, selfMove, otherSwitch, otherMove);
-                        refreshStatus();
-                        try {
-                            setDamage(0);
-                        } catch (InterruptedException ex) {
-                        }
-                    } else {
-                        if (pkmnChoose) {
-                            switchPkmn();
-                        }
-                        otherHP = otherPokemon.getHP();
-                        selfHP = selfPokemon.getHP();
-                        defeatPkmn = battleEngine.secondMove(selfSwitch, selfMove, otherSwitch, otherMove);
-                        refreshStatus();
-                        try {
-                            setDamage(1);
-                        } catch (InterruptedException ex) {
-                        }
                     }
+                    if (pkmnChoose)
+                        switchPkmn();
+                    otherHP = otherPokemon.getStat("HP");
+                    selfHP = selfPokemon.getStat("HP");
+                    if (firstTurn) {
+                        defeatPkmn = battleEngine.firstMove(selfSwitch, selfMove, otherSwitch, otherMove);
+                        printText(Key.Attack);
+                        try { setDamage(0); }
+                        catch (InterruptedException ex) { }
+                    } else {
+                        defeatPkmn = battleEngine.secondMove(selfSwitch, selfMove, otherSwitch, otherMove);
+                        printText(Key.Attack);
+                        try { setDamage(1); }
+                        catch (InterruptedException ex) { }
+                    }
+                    printText(Key.Nothing); printText(Key.Effect); printText(Key.WeatherStart);
+                    printText(Key.Stats); printText(Key.Critical); printText(Key.CountHit);
                     refreshStatus();
                     BattleTabs.printModifiedPkmn(selfPokemon);
-                    System.out.println("Finish Bar");
-                    setBackgroundWeather();
-                    
+                    if (selfMove.getWeather() != null || otherMove.getWeather() != null) {
+                        setBackgroundWeather();
+                    }
                     checkDefeatPokemon();
-                    
                     if (!endBattle) {
                         if (!firstTurn) {
                             try {
                                 defeatPkmn = battleEngine.setRoundFinish(selfPokemon, otherPokemon);
-                                setRecoil();
+                                setRecoil(); printText(Key.Damage);
                                 while (selfHit || otherHit) {
-                                    try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                                    try { Thread.sleep(DEFAULT_CLOCK); } catch (InterruptedException ex) { } //sleep
                                 }
                                 checkDefeatPokemon();
                                 battleEngine.flush();
-                                playBattle = false;
-                                selfMove = null;
-                                selfSwitch = null;
-                                otherSwitch = null;
+                                playBattle = false; selfMove = null;
+                                selfSwitch = null; otherSwitch = null;
                                 BattleTabs.printParty();
-                                hideTabs(false);
+                                printText(Key.Weather);
+                                setBackgroundWeather();
+                                hideTabs(false); lock = false;
                             } catch (InterruptedException ex) {
                             }
                         } else {
@@ -174,6 +169,7 @@ public class BattleBoard extends ExpandPanel {
                     } else {
                         playBattle = false;
                     }
+                    battleEngine.eraseAction();
                 }
             }
         };
@@ -193,7 +189,7 @@ public class BattleBoard extends ExpandPanel {
      */
     public void setTrainer(Trainer trn) {
         self = trn;
-        printAll();
+//        printAll();
     }
     
 /******************************************************************************/
@@ -213,6 +209,7 @@ public class BattleBoard extends ExpandPanel {
         hideTabs(true);
         BattleTabs.setBlockMoves(false);
         battleEngine.switchPkmn(self, selfPokemon, selfSwitch);
+        printText(Key.Switch);
         selfPokemon = selfSwitch;
         SpritePanel.setPokemon(selfPokemon);
         BattlePanel.setPokemon(selfPokemon);
@@ -233,6 +230,7 @@ public class BattleBoard extends ExpandPanel {
         } else {
             Pokemon newOPkmn = enemy.getParty().getRandomPkmn();
             battleEngine.switchPkmn(enemy, otherPokemon, newOPkmn);
+            printText(Key.Switch);
             otherPokemon = newOPkmn;
             eSpritePanel.setPokemon(otherPokemon);
             eBattlePanel.setPokemon(otherPokemon);
@@ -253,6 +251,8 @@ public class BattleBoard extends ExpandPanel {
     private boolean switchAction() {
         if (defeatPkmn != null) {
             if (defeatPkmn.contains(selfPokemon) && defeatPkmn.contains(otherPokemon)) { //all
+                printText(Key.KO);
+                printText(Key.KO);
                 System.err.println("self KO");
                 System.err.println("enemy KO");
                 if (isTrainer) {
@@ -264,9 +264,11 @@ public class BattleBoard extends ExpandPanel {
                 switchPanel();
             } else {
                 if (defeatPkmn.contains(selfPokemon)) {
+                    printText(Key.KO);
                     System.err.println("self KO");
                     switchPanel();
                 } else if (defeatPkmn.contains(otherPokemon)) {
+                    printText(Key.KO);
                     System.err.println("enemy KO");
                     if (isTrainer) {
                         Pokemon tempPkmn = checkEnemyParty();
@@ -312,14 +314,14 @@ public class BattleBoard extends ExpandPanel {
     private void moveBar(Pokemon pkmn) throws InterruptedException {
         if (pkmn == selfPokemon) {
             selfHit = true;
-            BattlePanel.setTimer(selfHP, selfPokemon.getMaxHP(), selfDamage);
+            BattlePanel.setTimer(selfHP, selfPokemon.getStat("MaxHP"), selfDamage);
             BattlePanel.setHit(true);
             SpritePanel.setHit(true);
             eSpritePanel.setHit(true);
             while (selfHit) {
                 try {
                     if (BattlePanel.getHit()) {
-                        Thread.sleep(50);
+                        Thread.sleep(DEFAULT_CLOCK);
                     } else {
                         selfHit = false;
                         SpritePanel.setHit(false);
@@ -330,14 +332,14 @@ public class BattleBoard extends ExpandPanel {
             Thread.sleep(150);
         } else if (pkmn == otherPokemon) {
             otherHit = true;
-            eBattlePanel.setTimer(otherHP, otherPokemon.getMaxHP(), otherDamage);
+            eBattlePanel.setTimer(otherHP, otherPokemon.getStat("MaxHP"), otherDamage);
             eBattlePanel.setHit(true);
             SpritePanel.setHit(true);
             eSpritePanel.setHit(true);
             while (otherHit) {
                 try {
                     if (eBattlePanel.getHit()) {
-                        Thread.sleep(50);
+                        Thread.sleep(DEFAULT_CLOCK);
                     } else {
                         otherHit = false;
                         SpritePanel.setHit(false);
@@ -357,7 +359,7 @@ public class BattleBoard extends ExpandPanel {
                 if (!endBattle) {
                     if (temp) {
                         while (!pkmnChoose) {
-                            try { Thread.sleep(50); } catch (InterruptedException ex) { } //sleep
+                            try { Thread.sleep(DEFAULT_CLOCK); } catch (InterruptedException ex) { } //sleep
                         }
                         switchPkmn();
                     }
@@ -381,15 +383,14 @@ public class BattleBoard extends ExpandPanel {
     //These methods refresh the GUI
     private void hideTabs(boolean hide) {
         blockTab = hide;
-    }
-    
-    private void printAll() {
-        try {
-            printInBattleStats(selfPokemon);
-            SpritePanel.printImage();
-            printEnemyInBattleStats(otherPokemon);
-            eSpritePanel.printImage();
-        } catch (IOException ex) {
+        if (!hide) {
+            try {
+                Thread.sleep(TEXT_CLOCK);
+                BattleTabs.stopEcho();
+            } catch (InterruptedException ex) {
+            }
+        } else {
+            BattleTabs.startEcho();
         }
     }
     
@@ -416,12 +417,13 @@ public class BattleBoard extends ExpandPanel {
         BattlePanel.printStat();
         eSpritePanel.colorImage(eSpritePanel.getPokemon().getStatus());
         eBattlePanel.printStat();
+        printText(Key.Status);
         repaint();
         revalidate();
     }
     
     private void printInBattleStats(Pokemon pkmn) throws IOException {
-        BattlePanel.getNameLabel().setText(pkmn.getSurname().toUpperCase());
+        BattlePanel.printName(pkmn.getSurname());
         BattlePanel.printLevel();
         BattlePanel.getHealtBar().setMinimum(0);
         BattlePanel.printHPBar(true);
@@ -429,7 +431,7 @@ public class BattleBoard extends ExpandPanel {
     }
     
     private void printEnemyInBattleStats(Pokemon pkmn) throws IOException {
-        eBattlePanel.getNameLabel().setText(pkmn.getSurname().toUpperCase());
+        eBattlePanel.printName(pkmn.getSurname());
         eBattlePanel.printLevel();
         eBattlePanel.getHealtBar().setMinimum(0);
         eBattlePanel.printHPBar(true);
@@ -446,19 +448,27 @@ public class BattleBoard extends ExpandPanel {
             BattleBoard.setBackground(background);
             BattleBoard.repaint();
             BattleBoard.revalidate();
+            printText(Key.Weather);
         }
     }
+    
     private void printBasicBoard() {
         eBattlePanel = new BattlePanel(otherPokemon, false, DIM);
         BattlePanel = new BattlePanel(selfPokemon, true, DIM);
         eSpritePanel = new SpritePanel(otherPokemon, false, DIM);
         SpritePanel = new SpritePanel(selfPokemon, true, DIM);
-        
-        BattleBoard.add(eBattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10*DIM, 10*DIM, -1, -1));
-        BattleBoard.add(BattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(302*DIM, 190*DIM, -1, -1));
-        BattleBoard.add(eSpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(352*DIM, 10*DIM, -1, -1));
-        BattleBoard.add(SpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(10*DIM, 120*DIM, -1, -1));
-        
+
+        BattleBoard.add(eBattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
+                10*DIM, 10*DIM, -1, -1));
+        BattleBoard.add(BattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
+                (MIN_BOARD_WIDTH*DIM)-((BattlePanel.getMinimumSize().width*DIM)+10*DIM),
+                (MIN_BOARD_HEIGHT*DIM)-((BattlePanel.getMinimumSize().height*DIM)+10*DIM), -1, -1));
+
+        BattleBoard.add(eSpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
+                (MIN_BOARD_WIDTH*DIM)-((eSpritePanel.getMinimumSize().width*DIM)+10*DIM), 10*DIM, -1, -1));
+        BattleBoard.add(SpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
+                10*DIM, (MIN_BOARD_HEIGHT*DIM)-((SpritePanel.getMinimumSize().height*DIM)+10*DIM), -1, -1));
+
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 1;
@@ -473,6 +483,17 @@ public class BattleBoard extends ExpandPanel {
         }
         add(BattleTabs, gridBagConstraints);
     }
+    
+    private void printText(Key key) {
+        if (battleEngine.isKeyContain(key)) {
+            try {
+                BattleTabs.echo(battleEngine.getActionText(key));
+                Thread.sleep(TEXT_CLOCK);
+            } catch (InterruptedException ex) {
+            }
+        }
+    }
+    
     public void changeGraphic(int mult) {
         DIM = mult;
         BattleBoard.remove(BattlePanel);
@@ -483,7 +504,6 @@ public class BattleBoard extends ExpandPanel {
         expandComponent(DIM);
         
         printBasicBoard();
-        printAll();
         revalidate();
         repaint();
     }
@@ -495,6 +515,7 @@ public class BattleBoard extends ExpandPanel {
      */
     protected void checkKey(KeyEvent e) {
         if (!blockTab) {
+            lock = true;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_1:
                     BattleTabs.rapidShowTab(0);
@@ -577,15 +598,14 @@ public class BattleBoard extends ExpandPanel {
                                     getComponent(BattleTabs.getPartyPos()+1);
                             if (prp.getPokemon().getStatus() != KO) {
                                 if (prp.getPokemon() != selfPokemon) {
+                                    System.out.println("Press "+prp.getPokemon().getSurname());
                                     if (!playBattle) {
-                                        System.out.println("Press "+prp.getPokemon().getSurname());
                                         selfSwitch = self.getParty().getPkmn(BattleTabs.getPartyPos());
                                         pkmnChoose = true;
                                         selfMove = SWITCH_MOVE;
                                         firstTurn = true;
                                         playBattle = true;
                                     } else {
-                                        System.out.println("Press "+prp.getPokemon().getSurname());
                                         selfSwitch = self.getParty().getPkmn(BattleTabs.getPartyPos());
                                         pkmnChoose = true;
                                         selfMove = SWITCH_MOVE;

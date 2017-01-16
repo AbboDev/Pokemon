@@ -8,11 +8,11 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.Timer;
-import object.Pokemon;
-import object.Pokemon.Status;
+import objects.Pokemon;
+import objects.Pokemon.Status;
 import screen.Board;
 
-import static object.Pokemon.Status.*;
+import static objects.Pokemon.Status.*;
 
 /**
  * @author Thomas
@@ -60,7 +60,7 @@ public class PkmnPartyPanel extends ExpandPanel {
             if (pokemon.getIfMale()) { sex = "Male"; } else { sex = "Female"; }
             Gender.setIcon(SpriteImage.getScaledImage(SpriteImage.getImage(PATH+sex+".png"), ICON_SIZE*mult));
         }
-        HP.setText(pokemon.getHP()+"/"+pokemon.getMaxHP());
+        HP.setText(pokemon.getStat("HP")+"/"+pokemon.getStat("MaxHP"));
         changeStatus(pokemon.getStatus());
     }
     
@@ -132,8 +132,8 @@ public class PkmnPartyPanel extends ExpandPanel {
                         } else {
                             Icon.setLocation(startX, startY);
                         }
-                        int delay = ((pokemon.getMaxHP() / pokemon.getHP()) > 50)
-                                ? 50 : pokemon.getMaxHP() / pokemon.getHP();
+                        int delay = ((pokemon.getStat("MaxHP") / pokemon.getStat("HP")) > 50)
+                                ? 50 : pokemon.getStat("MaxHP") / pokemon.getStat("HP");
                         timerIcon.setDelay(TIMER_DELAY * (delay));
                     } else if (pokemon.getStatus() != Asleep) {
                         if (Icon.getX() == startX) {

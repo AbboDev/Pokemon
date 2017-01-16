@@ -9,9 +9,9 @@ import java.util.ArrayList;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import object.Move;
-import object.Pokemon;
-import object.Trainer;
+import objects.Move;
+import objects.Pokemon;
+import objects.Trainer;
 
 /**
  * @author Thomas
@@ -155,7 +155,7 @@ public class BattleTab extends ExpandPanel {
     public void printCursor(JPanel container, int index, JScrollPane scroll) {
         String name = "cursor";
         boolean light = false;
-        int k = 5*DIM;
+        int k = 5;
         for (Component comp: container.getComponents()) {
             if (comp.getName().equals(name)) {
                 CursorPanel c = (CursorPanel) comp;
@@ -312,7 +312,7 @@ public class BattleTab extends ExpandPanel {
     public final void printMoves() {
         final ArrayList<Move> moveSet = pokemon.getMoveSet();
         ArrayList<JPanel> buttonSet = new ArrayList<>();
-        int k = 5*DIM;
+        int k = 5;
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, k, 0, 0);
@@ -346,7 +346,7 @@ public class BattleTab extends ExpandPanel {
 //        boolean close = true;
         final ArrayList<Pokemon> party = trainer.getParty().getArrayParty();
         ArrayList<JPanel> buttonSet = new ArrayList<>();
-        int k = 5*DIM;
+        int k = 5;
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(0, k, 0, 0);
@@ -388,6 +388,38 @@ public class BattleTab extends ExpandPanel {
         }
     }
     
+/******************************************************************************/  
+    //These methods populate the TextTab
+    /**
+     * 
+     * @param text 
+     */
+    public void echo(String text) {
+        TextLbl.setText("");
+        TextLbl.setText("<html>");
+        char[] singleLetter = text.toCharArray();
+        for (int i = 0; i < text.length(); ++i) {
+            try {
+                TextLbl.setText(TextLbl.getText()+""+singleLetter[i]);
+                Thread.sleep(20);
+            } catch (InterruptedException ex) {
+            }
+        }
+    }
+    
+    public void stopEcho() {
+        CardLayout cl = (CardLayout) (getLayout());
+        cl.show(this, "ChooseTab");
+        TextLbl.setText("");
+    }
+    
+    public void startEcho() {
+        CardLayout cl = (CardLayout) (getLayout());
+        cl.show(this, "TextTab");
+        TextLbl.setFont(new java.awt.Font("Trebuchet MS", 0, 24*DIM));
+        TextLbl.setText("");
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -416,6 +448,7 @@ public class BattleTab extends ExpandPanel {
         OptionTab = new javax.swing.JPanel();
         jLabel2 = new javax.swing.JLabel();
         TextTab = new javax.swing.JPanel();
+        TextLbl = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(102, 102, 102));
         setMaximumSize(new java.awt.Dimension(1024, 200));
@@ -496,6 +529,7 @@ public class BattleTab extends ExpandPanel {
         MovesScroll.setMaximumSize(null);
         MovesScroll.setMinimumSize(null);
         MovesScroll.setName("MovesScroll"); // NOI18N
+        MovesScroll.setOpaque(false);
         MovesScroll.setPreferredSize(null);
 
         MovesTab.setOpaque(false);
@@ -512,6 +546,7 @@ public class BattleTab extends ExpandPanel {
         PartyScroll.setMaximumSize(null);
         PartyScroll.setMinimumSize(null);
         PartyScroll.setName("PartyScroll"); // NOI18N
+        PartyScroll.setOpaque(false);
         PartyScroll.setPreferredSize(null);
 
         PartyTab.setOpaque(false);
@@ -528,6 +563,7 @@ public class BattleTab extends ExpandPanel {
         BagScroll.setMaximumSize(null);
         BagScroll.setMinimumSize(null);
         BagScroll.setName("BagScroll"); // NOI18N
+        BagScroll.setOpaque(false);
 
         BagTab.setMaximumSize(null);
         BagTab.setOpaque(false);
@@ -548,6 +584,7 @@ public class BattleTab extends ExpandPanel {
         OptionScroll.setMaximumSize(null);
         OptionScroll.setMinimumSize(null);
         OptionScroll.setName("OptionScroll"); // NOI18N
+        OptionScroll.setOpaque(false);
 
         OptionTab.setMaximumSize(null);
         OptionTab.setOpaque(false);
@@ -568,10 +605,20 @@ public class BattleTab extends ExpandPanel {
         gridBagConstraints.weighty = 1.0;
         ChooseTab.add(ScrollPanel, gridBagConstraints);
 
-        add(ChooseTab, "card2");
+        add(ChooseTab, "ChooseTab");
 
+        TextTab.setBackground(new java.awt.Color(153, 153, 153));
+        TextTab.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
         TextTab.setOpaque(false);
-        add(TextTab, "card3");
+        TextTab.setLayout(new java.awt.BorderLayout());
+
+        TextLbl.setBackground(new java.awt.Color(51, 51, 51));
+        TextLbl.setFont(new java.awt.Font("Trebuchet MS", 1, 24)); // NOI18N
+        TextLbl.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        TextLbl.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        TextTab.add(TextLbl, java.awt.BorderLayout.CENTER);
+
+        add(TextTab, "TextTab");
     }// </editor-fold>//GEN-END:initComponents
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel BagLabel;
@@ -589,6 +636,7 @@ public class BattleTab extends ExpandPanel {
     private javax.swing.JScrollPane PartyScroll;
     private javax.swing.JPanel PartyTab;
     private javax.swing.JPanel ScrollPanel;
+    private javax.swing.JLabel TextLbl;
     private javax.swing.JPanel TextTab;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

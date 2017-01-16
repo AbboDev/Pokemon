@@ -12,9 +12,9 @@ import java.awt.geom.Area;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.border.Border;
-import object.Move;
-import object.Move.TypeOfAttacks;
-import object.Pokemon.Type;
+import objects.Move;
+import objects.Move.TypeOfAttacks;
+import objects.Pokemon.Type;
 import screen.Board;
 
 /**

@@ -2,6 +2,7 @@ package custom_texture;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
@@ -11,11 +12,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.Timer;
-import object.Pokemon;
-import object.Pokemon.Status;
+import objects.Pokemon;
+import objects.Pokemon.Status;
 import screen.Board;
 
-import static object.Pokemon.Status.*;
+import static objects.Pokemon.Status.*;
 
 /**
  * @author Thomas
@@ -55,7 +56,7 @@ public class SpritePanel extends JPanel {
             public void actionPerformed(ActionEvent ae) {
                 if (pokemon.getStatus() != KO) {
                     if (!hit) {
-                        double diff = pokemon.getMaxHP() / pokemon.getHP();
+                        double diff = pokemon.getStat("MaxHP") / pokemon.getStat("HP");
                         double delay = 1;
                         if (diff >= Board.INTEGER && diff < Board.HALF) {
                             delay = Board.INTEGER;
@@ -111,20 +112,10 @@ public class SpritePanel extends JPanel {
                 r = 255; g = 51; b = 0; break;
             case Freeze:
                 r = 51; g = 204; b = 255; break;
-            default:
-                break;
+            default: break;
         }
-        if (status != pokemon.getStatus()) {
-            Image image = SpriteImage.getScaledImage(SpriteImage.getImage(path), SIZE*DIM).getImage();
-            if (!mirror) {
-                sprite.setIcon(new ImageIcon(SpriteImage.colorImage(
-                        SpriteImage.imageToBufferedImage(image), r, g, b)));
-            } else {
-                sprite.setIcon(SpriteImage.getMirrorImage(new ImageIcon(SpriteImage.colorImage(
-                        SpriteImage.imageToBufferedImage(image), r, g, b))));
-            }
-        } else {
-            if (status != OK) {
+        if (status != KO) {
+            if (status != pokemon.getStatus()) {
                 Image image = SpriteImage.getScaledImage(SpriteImage.getImage(path), SIZE*DIM).getImage();
                 if (!mirror) {
                     sprite.setIcon(new ImageIcon(SpriteImage.colorImage(
@@ -132,6 +123,17 @@ public class SpritePanel extends JPanel {
                 } else {
                     sprite.setIcon(SpriteImage.getMirrorImage(new ImageIcon(SpriteImage.colorImage(
                             SpriteImage.imageToBufferedImage(image), r, g, b))));
+                }
+            } else {
+                if (status != OK) {
+                    Image image = SpriteImage.getScaledImage(SpriteImage.getImage(path), SIZE*DIM).getImage();
+                    if (!mirror) {
+                        sprite.setIcon(new ImageIcon(SpriteImage.colorImage(
+                                SpriteImage.imageToBufferedImage(image), r, g, b)));
+                    } else {
+                        sprite.setIcon(SpriteImage.getMirrorImage(new ImageIcon(SpriteImage.colorImage(
+                                SpriteImage.imageToBufferedImage(image), r, g, b))));
+                    }
                 }
             }
         }
@@ -164,6 +166,7 @@ public class SpritePanel extends JPanel {
     }
     
     private void initComponents() {
+        setMinimumSize(new Dimension(SIZE, SIZE));
         setSize(SIZE*DIM, SIZE*DIM);
         setOpaque(false);
         setLayout(new BorderLayout());

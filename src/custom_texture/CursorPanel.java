@@ -1,6 +1,7 @@
 package custom_texture;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JLabel;
@@ -63,6 +64,7 @@ public class CursorPanel extends JPanel {
     }
     
     private void initComponents() {
+        setMinimumSize(new Dimension(SIZE, SIZE));
         setSize(SIZE*DIM, SIZE*DIM);
         setOpaque(false);
         setLayout(new BorderLayout());
