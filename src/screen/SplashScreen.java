@@ -10,7 +10,6 @@ import java.awt.Point;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JWindow;
 import javax.swing.Timer;
@@ -49,7 +48,9 @@ public class SplashScreen extends JWindow {
         } catch (IOException ex) {
         }
 
-        JPanel panel = new GradientPanel(Color.red, Color.white);
+        GradientPanel panel = new GradientPanel();
+        panel.back1 = Color.red;
+        panel.back2 = Color.white;
         panel.setBorder(new EtchedBorder());
         container.add(panel, BorderLayout.CENTER);
 

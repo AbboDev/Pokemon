@@ -10,7 +10,6 @@ import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
 import javax.swing.Timer;
 import objects.Pokemon;
 import objects.Pokemon.Status;
@@ -21,14 +20,13 @@ import static objects.Pokemon.Status.*;
 /**
  * @author Thomas
  */
-public class SpritePanel extends JPanel {
+public class SpritePanel extends ExpandPanel {
     private static final long serialVersionUID = 9612921993001222L;
     private static final int CLOCK = 150;
-    private static final int SIZE = 144;
+    private static final int MIN_SIZE = 144;
     
     private final boolean mirror;
     private boolean hit;
-    private int DIM = 1;
     private int thisX, thisY;
     private String path;
     private Pokemon pokemon;
@@ -39,13 +37,13 @@ public class SpritePanel extends JPanel {
      * Creates new form BattlePanel
      * @param pkmn
      * @param mirror
-     * @param dim
      */
-    public SpritePanel(Pokemon pkmn, boolean mirror, int dim) {
+    public SpritePanel(Pokemon pkmn, boolean mirror) {
+//        super();
+        setOpaque(true);
         hit = false;
         this.mirror = mirror;
         pokemon = pkmn;
-        DIM = dim;
         initComponents();
         path = getPkmnPath(pokemon);
         printImage();
@@ -69,13 +67,13 @@ public class SpritePanel extends JPanel {
                         }
                         if (pokemon.getStatus() == OK) {
                             if (sprite.getY() == thisY) {
-                                sprite.setLocation(thisX, thisY + (3*DIM));
+                                sprite.setLocation(thisX, (int) (thisY + (3*(Board.yDIM))));
                             } else {
                                 sprite.setLocation(thisX, thisY);
                             }
                         } else if (pokemon.getStatus() != Asleep && pokemon.getStatus() != Freeze) {
                             if (sprite.getX() == thisX) {
-                                sprite.setLocation(thisX + (3*DIM), thisY);
+                                sprite.setLocation((int) (thisX + (3*(Board.yDIM))), thisY);
                             } else {
                                 sprite.setLocation(thisX, thisY);
                                 delay /= 3;
@@ -90,11 +88,13 @@ public class SpritePanel extends JPanel {
     }
     
     public final void printImage() {
-        ImageIcon image = SpriteImage.getImage(path);
+        ImageIcon image = ImageConverter.getImage(path);
         if (mirror) {
-            sprite.setIcon(SpriteImage.getScaledMirrorImage(image, SIZE*DIM));
+            sprite.setIcon(ImageConverter.getScaledMirrorImage(image,
+                    (int) (MIN_SIZE*(Board.xDIM)), (int) (MIN_SIZE*(Board.yDIM))));
         } else {
-            sprite.setIcon(SpriteImage.getScaledImage(image, SIZE*DIM));
+            sprite.setIcon(ImageConverter.getScaledImage(image,
+                    (int)(MIN_SIZE*(Board.xDIM)), (int) (MIN_SIZE*(Board.yDIM))));
         }
         colorImage(pokemon.getStatus());
     }
@@ -116,23 +116,25 @@ public class SpritePanel extends JPanel {
         }
         if (status != KO) {
             if (status != pokemon.getStatus()) {
-                Image image = SpriteImage.getScaledImage(SpriteImage.getImage(path), SIZE*DIM).getImage();
+                Image image = ImageConverter.getScaledImage(ImageConverter.getImage(path),
+                        (int) (MIN_SIZE*(Board.xDIM)), (int) (MIN_SIZE*(Board.yDIM))).getImage();
                 if (!mirror) {
-                    sprite.setIcon(new ImageIcon(SpriteImage.colorImage(
-                            SpriteImage.imageToBufferedImage(image), r, g, b)));
+                    sprite.setIcon(new ImageIcon(ImageConverter.colorImage(
+                            ImageConverter.imageToBufferedImage(image), r, g, b)));
                 } else {
-                    sprite.setIcon(SpriteImage.getMirrorImage(new ImageIcon(SpriteImage.colorImage(
-                            SpriteImage.imageToBufferedImage(image), r, g, b))));
+                    sprite.setIcon(ImageConverter.getMirrorImage(new ImageIcon(ImageConverter.colorImage(
+                            ImageConverter.imageToBufferedImage(image), r, g, b))));
                 }
             } else {
                 if (status != OK) {
-                    Image image = SpriteImage.getScaledImage(SpriteImage.getImage(path), SIZE*DIM).getImage();
+                    Image image = ImageConverter.getScaledImage(ImageConverter.getImage(path),
+                            (int) (MIN_SIZE*(Board.xDIM)), (int) (MIN_SIZE*(Board.yDIM))).getImage();
                     if (!mirror) {
-                        sprite.setIcon(new ImageIcon(SpriteImage.colorImage(
-                                SpriteImage.imageToBufferedImage(image), r, g, b)));
+                        sprite.setIcon(new ImageIcon(ImageConverter.colorImage(
+                                ImageConverter.imageToBufferedImage(image), r, g, b)));
                     } else {
-                        sprite.setIcon(SpriteImage.getMirrorImage(new ImageIcon(SpriteImage.colorImage(
-                                SpriteImage.imageToBufferedImage(image), r, g, b))));
+                        sprite.setIcon(ImageConverter.getMirrorImage(new ImageIcon(ImageConverter.colorImage(
+                                ImageConverter.imageToBufferedImage(image), r, g, b))));
                     }
                 }
             }
@@ -166,13 +168,12 @@ public class SpritePanel extends JPanel {
     }
     
     private void initComponents() {
-        setMinimumSize(new Dimension(SIZE, SIZE));
-        setSize(SIZE*DIM, SIZE*DIM);
+        setMinimumSize(new Dimension(MIN_SIZE, MIN_SIZE));
         setOpaque(false);
         setLayout(new BorderLayout());
         
         sprite = new JLabel();
-        sprite.setSize(getWidth()*DIM, getHeight()*DIM);
+        sprite.setSize(getMinimumSize());
         
         add(sprite, BorderLayout.CENTER);
         
@@ -180,11 +181,14 @@ public class SpritePanel extends JPanel {
     }
     
     @Override
-    public void paintComponent (Graphics g) { 
+    public void paintComponent (Graphics g) {
         super.paintComponent(g); 
-        g.setColor(Color.blue); 
-        g.drawOval(0, 100*DIM, getPreferredSize().width, getPreferredSize().height-(100*DIM)); 
+        int width = (int) (getMinimumSize().width*(Board.xDIM));
+        int height = (int) (getMinimumSize().height*(Board.yDIM));
+        int size = (int) (100*(Board.yDIM));
+        g.setColor(Color.blue);
+        g.drawOval(0, size, width, height-(size)); 
         g.setColor(Color.green); 
-        g.fillOval(0, 100*DIM, getPreferredSize().width, getPreferredSize().height-(100*DIM)); 
-    } 
+        g.fillOval(0, size, width, height-(size));
+    }
 }

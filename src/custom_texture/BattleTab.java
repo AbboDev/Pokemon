@@ -12,6 +12,7 @@ import javax.swing.JScrollPane;
 import objects.Move;
 import objects.Pokemon;
 import objects.Trainer;
+import screen.Board;
 
 /**
  * @author Thomas
@@ -20,8 +21,7 @@ public class BattleTab extends ExpandPanel {
     private static final Color UNSELECT_COLOR = new Color(153, 153, 153);
     private static final Color SELECT_COLOR = new Color(91, 91, 91);
     private static final int MAX_TAB = 3;
-    
-    private int DIM = 1;
+    private static final int K = 5;
     
     private int currentTab;
     private int movesPos;
@@ -42,32 +42,33 @@ public class BattleTab extends ExpandPanel {
      * @param tab
      * @param mult
      */
-    public BattleTab(Trainer trn, Pokemon pkmn, int tab, int mult) {
-        trainer = trn;
-        pokemon = pkmn;
-        DIM = mult;
+    public BattleTab(Trainer trn, Pokemon pkmn, int tab) {
+//        super();
+        trainer = trn; pokemon = pkmn;
         currentTab = tab;
-        movesPos = 0;
-        partyPos = 0;
+        movesPos = partyPos = 0;
         blockBag = false;
         blockMoves = false;
         blockParty = false;
         blockOption = false;
         initTab();
     }
-    public BattleTab(BattleTab bt, int mult) {
-        trainer = bt.getTrainer();
-        pokemon = bt.getPokemon();
-        DIM = mult;
+    /**
+     * 
+     * @param bt
+     * @param mult 
+     */
+    public BattleTab(BattleTab bt) {
+        trainer = bt.getTrainer(); pokemon = bt.getPokemon();
         currentTab = bt.getCurrentTab();
-        movesPos = bt.getMovesPos();
-        partyPos = bt.getPartyPos();
+        movesPos = bt.getMovesPos(); partyPos = bt.getPartyPos();
         blockBag = bt.isBlockBag();
         blockMoves = bt.isBlockMoves();
         blockParty = bt.isBlockParty();
         blockOption = bt.isBlockOption();
         initTab();
     }
+    
     private void initTab() {
         initComponents();
         MovesScroll.getViewport().setOpaque(false);
@@ -85,12 +86,16 @@ public class BattleTab extends ExpandPanel {
         
         printMoves();
         printParty();
-        expandComponent(DIM);
+        expandComponent();
         
         setScrollBarPosition(MovesScroll, movesPos);
         setScrollBarPosition(PartyScroll, partyPos);
     }
     
+    /**
+     * 
+     * @param tab 
+     */
     public void rapidShowTab(int tab) {
         CardLayout cl = (CardLayout) (ScrollPanel.getLayout());
         boolean block = false;
@@ -108,6 +113,11 @@ public class BattleTab extends ExpandPanel {
         selectTab();
     }
     
+    /**
+     * 
+     * @param tab
+     * @param right 
+     */
     public final void showTab(int tab, boolean right) {
         checkBlock(tab, right);
         selectTab();
@@ -152,10 +162,15 @@ public class BattleTab extends ExpandPanel {
         }
     }
     
+    /**
+     * 
+     * @param container
+     * @param index
+     * @param scroll 
+     */
     public void printCursor(JPanel container, int index, JScrollPane scroll) {
         String name = "cursor";
         boolean light = false;
-        int k = 5;
         for (Component comp: container.getComponents()) {
             if (comp.getName().equals(name)) {
                 CursorPanel c = (CursorPanel) comp;
@@ -163,18 +178,31 @@ public class BattleTab extends ExpandPanel {
                 container.remove(comp);
             }
         }
+        int k = (int) (K*(Board.xDIM));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, k, 0, 0);
-        CursorPanel cursor = new CursorPanel(light, DIM);
+//        gbc.anchor = GridBagConstraints.CENTER;
+//        gbc.weightx = 0.5;
+        if (index == 0) {
+            gbc.insets = new Insets(0, k*2, 0, k);
+        } else {
+            gbc.insets = new Insets(0, k, 0, k);
+        }
+        CursorPanel cursor = new CursorPanel(light);
         cursor.setName(name);
-        container.add(cursor, gbc, index);
+        container.add(cursor, index);
         
-        scroll.getHorizontalScrollBar().setValue((index*(160*DIM))-(cursor.getWidth()*DIM)+((k)*index));
+        scroll.getHorizontalScrollBar().setValue(
+                (int) ((index*(160*(Board.xDIM)))-(cursor.getWidth()*(Board.xDIM))+((k)*index)));
         scroll.repaint();
         scroll.revalidate();
     }
     
+    /**
+     * 
+     * @param tab
+     * @param right 
+     */
     public void moveCursor(JPanel tab, boolean right) {
         JScrollPane scroll = (JScrollPane) tab.getParent().getParent();
         int pos;
@@ -301,7 +329,7 @@ public class BattleTab extends ExpandPanel {
     
     public final void setScrollBarPosition(JScrollPane scroll, int pos) {
         scroll.getHorizontalScrollBar().setValue(
-                (pos*(160*DIM))-(CursorPanel.SIZE*DIM)+((5*DIM)*pos));
+                (int) ((pos*(160*(Board.xDIM)))-(CursorPanel.MIN_SIZE*(Board.xDIM))+((5*(Board.xDIM))*pos)));
     }
     
 /******************************************************************************/
@@ -310,18 +338,23 @@ public class BattleTab extends ExpandPanel {
         MovesTab.removeAll();
     }
     public final void printMoves() {
+        int k = (int) (K*(Board.xDIM));
         final ArrayList<Move> moveSet = pokemon.getMoveSet();
         ArrayList<JPanel> buttonSet = new ArrayList<>();
-        int k = 5;
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, k, 0, 0);
+        gbc.insets = new Insets(0, k, 0, k);
+        gbc.weightx = 1.0;
         clearMovesTab();
         try {
             for (int i = 0; i < moveSet.size(); ++i) {
+                if (i == movesPos) {
+                    
+                }
                 buttonSet.add(printMovesButton(new JPanel(), moveSet.get(i)));
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
         for (JPanel button : buttonSet) {
             if (buttonSet.indexOf(button) == buttonSet.size()-1) {
@@ -332,7 +365,7 @@ public class BattleTab extends ExpandPanel {
         printCursor(MovesTab, movesPos, MovesScroll);
     }
     private JPanel printMovesButton(JPanel button, final Move move) {
-        button = new MovePanel(move, DIM);
+        button = new MovePanel(move);
         button.setName(move.getName());
         return button;
     }
@@ -343,24 +376,21 @@ public class BattleTab extends ExpandPanel {
         PartyTab.removeAll();
     }
     public final void printParty() {
-//        boolean close = true;
+        int k = (int) (K*(Board.xDIM));
         final ArrayList<Pokemon> party = trainer.getParty().getArrayParty();
         ArrayList<JPanel> buttonSet = new ArrayList<>();
-        int k = 5;
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, k, 0, 0);
+        gbc.insets = new Insets(0, k, 0, k);
+        gbc.weightx = 1.0;
         clearPartyTab();
         try {
             for (int i = 0; i < party.size(); ++i) {
-//                if (party.get(i).getStatus() != Pokemon.Status.KO) {
-//                    close = false;
-//                }
                 buttonSet.add(printPartyButton(party.get(i), new JPanel(), i));
             }
         } catch (Exception e) {
+            e.printStackTrace();
         }
-//        battleEnd(close);
         for (JPanel button : buttonSet) {
             if (buttonSet.indexOf(button) == buttonSet.size()-1) {
                 gbc.insets = new Insets(0, k, 0, k);
@@ -370,10 +400,10 @@ public class BattleTab extends ExpandPanel {
         printCursor(PartyTab, partyPos, PartyScroll);
     }
     private JPanel printPartyButton(final Pokemon pkmn, JPanel button, int index) {
-        button = new PkmnPartyPanel(pkmn, DIM);
-        if (pkmn.getStatus() == Pokemon.Status.KO) {
-            button.setEnabled(false);
-        }
+        button = new PkmnPartyPanel(pkmn);
+//        if (pkmn.getStatus() == Pokemon.Status.KO) {
+//            button.setEnabled(false);
+//        }
         button.setName(pkmn.getName()+index);
         return button;
     }
@@ -382,7 +412,7 @@ public class BattleTab extends ExpandPanel {
             try {
                 PkmnPartyPanel comp = (PkmnPartyPanel) PartyTab.getComponent(i);
                 if (comp.getPokemon().equals(pokemon)) {
-                    comp.refreshAll(DIM);
+                    comp.refreshAll();
                 }
             } catch (Exception e) {}
         }
@@ -395,12 +425,13 @@ public class BattleTab extends ExpandPanel {
      * @param text 
      */
     public void echo(String text) {
-        TextLbl.setText("");
+        TextLbl.setForeground(TextLbl.getParent().getBackground());
         TextLbl.setText("<html>");
         char[] singleLetter = text.toCharArray();
         for (int i = 0; i < text.length(); ++i) {
             try {
                 TextLbl.setText(TextLbl.getText()+""+singleLetter[i]);
+                TextLbl.setForeground(Color.black);
                 Thread.sleep(20);
             } catch (InterruptedException ex) {
             }
@@ -416,7 +447,7 @@ public class BattleTab extends ExpandPanel {
     public void startEcho() {
         CardLayout cl = (CardLayout) (getLayout());
         cl.show(this, "TextTab");
-        TextLbl.setFont(new java.awt.Font("Trebuchet MS", 0, 24*DIM));
+        TextLbl.setFont(new java.awt.Font("Trebuchet MS", 0, (int) (24*(Board.xDIM))));
         TextLbl.setText("");
     }
     
@@ -451,15 +482,14 @@ public class BattleTab extends ExpandPanel {
         TextLbl = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(102, 102, 102));
-        setMaximumSize(new java.awt.Dimension(1024, 200));
-        setMinimumSize(new java.awt.Dimension(512, 100));
-        setPreferredSize(new java.awt.Dimension(512, 100));
+        setMinimumSize(new java.awt.Dimension(256, 50));
         setLayout(new java.awt.CardLayout());
 
+        ChooseTab.setMinimumSize(new java.awt.Dimension(512, 100));
         ChooseTab.setOpaque(false);
         ChooseTab.setLayout(new java.awt.GridBagLayout());
 
-        NamePanel.setMaximumSize(new java.awt.Dimension(1024, 40));
+        NamePanel.setMaximumSize(null);
         NamePanel.setMinimumSize(new java.awt.Dimension(512, 20));
         NamePanel.setOpaque(false);
         NamePanel.setPreferredSize(new java.awt.Dimension(512, 20));
@@ -470,10 +500,12 @@ public class BattleTab extends ExpandPanel {
         MovesLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         MovesLabel.setText("MOVES");
         MovesLabel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        MovesLabel.setMaximumSize(new java.awt.Dimension(256, 40));
-        MovesLabel.setMinimumSize(new java.awt.Dimension(128, 20));
+        MovesLabel.setDoubleBuffered(true);
+        MovesLabel.setInheritsPopupMenu(false);
+        MovesLabel.setMaximumSize(null);
+        MovesLabel.setMinimumSize(new java.awt.Dimension(64, 10));
         MovesLabel.setOpaque(true);
-        MovesLabel.setPreferredSize(new java.awt.Dimension(128, 20));
+        MovesLabel.setPreferredSize(new java.awt.Dimension(64, 10));
         NamePanel.add(MovesLabel);
 
         PartyLabel.setBackground(new java.awt.Color(153, 153, 153));
@@ -481,10 +513,12 @@ public class BattleTab extends ExpandPanel {
         PartyLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         PartyLabel.setText("PARTY");
         PartyLabel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        PartyLabel.setMaximumSize(new java.awt.Dimension(256, 40));
-        PartyLabel.setMinimumSize(new java.awt.Dimension(128, 20));
+        PartyLabel.setDoubleBuffered(true);
+        PartyLabel.setInheritsPopupMenu(false);
+        PartyLabel.setMaximumSize(null);
+        PartyLabel.setMinimumSize(new java.awt.Dimension(64, 10));
         PartyLabel.setOpaque(true);
-        PartyLabel.setPreferredSize(new java.awt.Dimension(128, 20));
+        PartyLabel.setPreferredSize(new java.awt.Dimension(64, 10));
         NamePanel.add(PartyLabel);
 
         BagLabel.setBackground(new java.awt.Color(153, 153, 153));
@@ -492,10 +526,12 @@ public class BattleTab extends ExpandPanel {
         BagLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         BagLabel.setText("BAG");
         BagLabel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        BagLabel.setMaximumSize(new java.awt.Dimension(256, 40));
-        BagLabel.setMinimumSize(new java.awt.Dimension(128, 20));
+        BagLabel.setDoubleBuffered(true);
+        BagLabel.setInheritsPopupMenu(false);
+        BagLabel.setMaximumSize(null);
+        BagLabel.setMinimumSize(new java.awt.Dimension(64, 10));
         BagLabel.setOpaque(true);
-        BagLabel.setPreferredSize(new java.awt.Dimension(128, 20));
+        BagLabel.setPreferredSize(new java.awt.Dimension(64, 10));
         NamePanel.add(BagLabel);
 
         OptionLabel.setBackground(new java.awt.Color(153, 153, 153));
@@ -503,19 +539,22 @@ public class BattleTab extends ExpandPanel {
         OptionLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         OptionLabel.setText("OPTION");
         OptionLabel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        OptionLabel.setMaximumSize(new java.awt.Dimension(256, 40));
-        OptionLabel.setMinimumSize(new java.awt.Dimension(128, 20));
+        OptionLabel.setDoubleBuffered(true);
+        OptionLabel.setInheritsPopupMenu(false);
+        OptionLabel.setMaximumSize(null);
+        OptionLabel.setMinimumSize(new java.awt.Dimension(64, 10));
         OptionLabel.setOpaque(true);
-        OptionLabel.setPreferredSize(new java.awt.Dimension(128, 20));
+        OptionLabel.setPreferredSize(new java.awt.Dimension(64, 10));
         NamePanel.add(OptionLabel);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.gridx = 0;
+        gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
         gridBagConstraints.weightx = 1.0;
-        gridBagConstraints.weighty = 1.0;
+        gridBagConstraints.weighty = 0.5;
         ChooseTab.add(NamePanel, gridBagConstraints);
 
-        ScrollPanel.setMaximumSize(new java.awt.Dimension(1024, 160));
         ScrollPanel.setMinimumSize(new java.awt.Dimension(512, 80));
         ScrollPanel.setOpaque(false);
         ScrollPanel.setPreferredSize(new java.awt.Dimension(512, 80));
@@ -526,13 +565,12 @@ public class BattleTab extends ExpandPanel {
         MovesScroll.setToolTipText("");
         MovesScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         MovesScroll.setAutoscrolls(true);
+        MovesScroll.setDoubleBuffered(true);
         MovesScroll.setMaximumSize(null);
         MovesScroll.setMinimumSize(null);
         MovesScroll.setName("MovesScroll"); // NOI18N
-        MovesScroll.setOpaque(false);
-        MovesScroll.setPreferredSize(null);
 
-        MovesTab.setOpaque(false);
+        MovesTab.setMaximumSize(null);
         MovesTab.setLayout(new java.awt.GridBagLayout());
         MovesScroll.setViewportView(MovesTab);
 
@@ -543,13 +581,12 @@ public class BattleTab extends ExpandPanel {
         PartyScroll.setToolTipText("");
         PartyScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         PartyScroll.setAutoscrolls(true);
+        PartyScroll.setDoubleBuffered(true);
         PartyScroll.setMaximumSize(null);
         PartyScroll.setMinimumSize(null);
         PartyScroll.setName("PartyScroll"); // NOI18N
-        PartyScroll.setOpaque(false);
-        PartyScroll.setPreferredSize(null);
 
-        PartyTab.setOpaque(false);
+        PartyTab.setMaximumSize(null);
         PartyTab.setLayout(new java.awt.GridBagLayout());
         PartyScroll.setViewportView(PartyTab);
 
@@ -560,13 +597,12 @@ public class BattleTab extends ExpandPanel {
         BagScroll.setToolTipText("");
         BagScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         BagScroll.setAutoscrolls(true);
+        BagScroll.setDoubleBuffered(true);
         BagScroll.setMaximumSize(null);
         BagScroll.setMinimumSize(null);
         BagScroll.setName("BagScroll"); // NOI18N
-        BagScroll.setOpaque(false);
 
         BagTab.setMaximumSize(null);
-        BagTab.setOpaque(false);
 
         jLabel1.setFont(new java.awt.Font("Trebuchet MS", 0, 24)); // NOI18N
         jLabel1.setText("WORK IN PROGRESS...");
@@ -581,13 +617,12 @@ public class BattleTab extends ExpandPanel {
         OptionScroll.setToolTipText("");
         OptionScroll.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
         OptionScroll.setAutoscrolls(true);
+        OptionScroll.setDoubleBuffered(true);
         OptionScroll.setMaximumSize(null);
         OptionScroll.setMinimumSize(null);
         OptionScroll.setName("OptionScroll"); // NOI18N
-        OptionScroll.setOpaque(false);
 
         OptionTab.setMaximumSize(null);
-        OptionTab.setOpaque(false);
 
         jLabel2.setFont(new java.awt.Font("Trebuchet MS", 0, 24)); // NOI18N
         jLabel2.setText("WORK IN PROGRESS...");
@@ -609,13 +644,21 @@ public class BattleTab extends ExpandPanel {
 
         TextTab.setBackground(new java.awt.Color(153, 153, 153));
         TextTab.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        TextTab.setMinimumSize(new java.awt.Dimension(512, 100));
         TextTab.setOpaque(false);
+        TextTab.setPreferredSize(new java.awt.Dimension(512, 100));
         TextTab.setLayout(new java.awt.BorderLayout());
 
         TextLbl.setBackground(new java.awt.Color(51, 51, 51));
         TextLbl.setFont(new java.awt.Font("Trebuchet MS", 1, 24)); // NOI18N
+        TextLbl.setText("<html>");
         TextLbl.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         TextLbl.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        TextLbl.setDoubleBuffered(true);
+        TextLbl.setInheritsPopupMenu(false);
+        TextLbl.setMaximumSize(null);
+        TextLbl.setMinimumSize(new java.awt.Dimension(512, 100));
+        TextLbl.setPreferredSize(new java.awt.Dimension(512, 100));
         TextTab.add(TextLbl, java.awt.BorderLayout.CENTER);
 
         add(TextTab, "TextTab");

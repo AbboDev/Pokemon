@@ -18,7 +18,7 @@ import javax.swing.ImageIcon;
 /**
  * @author Thomas
  */
-public class SpriteImage extends ImageIcon {
+public class ImageConverter extends ImageIcon {
     private static final long serialVersionUID = 761260847832282907L;
     
     /**

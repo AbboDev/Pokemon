@@ -23,7 +23,6 @@ public class BattlePanel extends ExpandPanel {
     private final static int BAR_DELAY = 30;
     private final static int ICON_SIZE = 20;
     
-    private int DIM = 1;
     private boolean hit = false;
     private int hp, maxhp, damage;
     private final JPanel ExpPanel;
@@ -35,21 +34,21 @@ public class BattlePanel extends ExpandPanel {
      * Creates new form BattlePanel
      * @param pkmn
      * @param isPlayer
-     * @param mult
      */
-    public BattlePanel(Pokemon pkmn, boolean isPlayer, int mult) {
-        DIM = mult;
+    public BattlePanel(Pokemon pkmn, boolean isPlayer) {
         pokemon = pkmn;
         initComponents();
         ExpPanel = new JPanel();
-        setMinimumSize(new Dimension(200, 70));
-        setMaximumSize(new Dimension(400, 160));
+        setMinimumSize(new Dimension(100, 35));
+        int heigth, width = (int) (200*(Board.xDIM));
         if (isPlayer) {
-            setPreferredSize(new Dimension(200*DIM, 80*DIM));
+            heigth = (int) (80*(Board.yDIM));
+            setPreferredSize(new Dimension(width, heigth));
             setSize(getPreferredSize());
-            ExpPanel.setMaximumSize(new Dimension(400, 20));
-            ExpPanel.setMinimumSize(new Dimension(200, 10));
-            ExpPanel.setPreferredSize(new Dimension(200*DIM, 10*DIM));
+//            ExpPanel.setMaximumSize(new Dimension(400, 20));
+            ExpPanel.setMinimumSize(new Dimension(100, 5));
+            heigth = (int) (10*(Board.yDIM));
+            ExpPanel.setPreferredSize(new Dimension(width, heigth));
             ExpPanel.setLayout(new BorderLayout());
             
             ExpBar = new JProgressBar();
@@ -61,10 +60,11 @@ public class BattlePanel extends ExpandPanel {
             gridBagConstraints.gridy = 3;
             add(ExpPanel, gridBagConstraints);
         } else {
-            setPreferredSize(new Dimension(200*DIM, 70*DIM));
+            heigth = (int) (70*(Board.yDIM));
+            setPreferredSize(new Dimension(width, heigth));
             setSize(getPreferredSize());
         }
-        expandComponent(DIM);
+        expandComponent();
         setHit(false);
         setTimer(0, 0, 0);
         startThread();
@@ -128,7 +128,10 @@ public class BattlePanel extends ExpandPanel {
         if (!pokemon.getIfAsessual()) {
             String sex;
             if (pokemon.getIfMale()) { sex = "Male"; } else { sex = "Female"; }
-            Gender.setIcon(SpriteImage.getScaledImage(SpriteImage.getImage(PATH+sex+".png"), ICON_SIZE*DIM));
+            int sizex = (int) (ICON_SIZE*(Board.xDIM));
+            int sizey = (int) (ICON_SIZE*(Board.yDIM));
+            Gender.setIcon(ImageConverter.getScaledImage(
+                    ImageConverter.getImage(PATH+sex+".png"), sizex, sizey));
         }
         Level.setText("Lv. "+pokemon.getStat("Level")+"");
     }
@@ -233,13 +236,11 @@ public class BattlePanel extends ExpandPanel {
 
         setBackground(new java.awt.Color(75, 75, 75));
         setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        setMaximumSize(null);
-        setMinimumSize(null);
+        setMinimumSize(new java.awt.Dimension(100, 35));
         setName(""); // NOI18N
-        setPreferredSize(null);
+        setPreferredSize(new java.awt.Dimension(200, 70));
         setLayout(new java.awt.GridBagLayout());
 
-        NamePanel.setMaximumSize(new java.awt.Dimension(400, 50));
         NamePanel.setMinimumSize(new java.awt.Dimension(200, 25));
         NamePanel.setName(""); // NOI18N
         NamePanel.setOpaque(false);
@@ -248,7 +249,8 @@ public class BattlePanel extends ExpandPanel {
 
         Name.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
         Name.setText("NAME");
-        Name.setMaximumSize(new java.awt.Dimension(260, 50));
+        Name.setInheritsPopupMenu(false);
+        Name.setMaximumSize(null);
         Name.setMinimumSize(new java.awt.Dimension(130, 25));
         Name.setPreferredSize(new java.awt.Dimension(130, 25));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -263,7 +265,8 @@ public class BattlePanel extends ExpandPanel {
         Gender.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
         Gender.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Gender.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Gender.setMaximumSize(new java.awt.Dimension(50, 50));
+        Gender.setInheritsPopupMenu(false);
+        Gender.setMaximumSize(null);
         Gender.setMinimumSize(new java.awt.Dimension(25, 25));
         Gender.setName(""); // NOI18N
         Gender.setPreferredSize(new java.awt.Dimension(25, 25));
@@ -279,7 +282,8 @@ public class BattlePanel extends ExpandPanel {
         Level.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         Level.setText("LVL");
         Level.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-        Level.setMaximumSize(new java.awt.Dimension(90, 50));
+        Level.setInheritsPopupMenu(false);
+        Level.setMaximumSize(null);
         Level.setMinimumSize(new java.awt.Dimension(45, 25));
         Level.setPreferredSize(new java.awt.Dimension(45, 25));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -301,29 +305,38 @@ public class BattlePanel extends ExpandPanel {
 
         HPpanel.setBackground(new java.awt.Color(51, 51, 51));
         HPpanel.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
-        HPpanel.setMaximumSize(new java.awt.Dimension(400, 50));
+        HPpanel.setMaximumSize(null);
         HPpanel.setMinimumSize(new java.awt.Dimension(200, 25));
         HPpanel.setPreferredSize(new java.awt.Dimension(200, 25));
-        HPpanel.setLayout(new javax.swing.BoxLayout(HPpanel, javax.swing.BoxLayout.X_AXIS));
+        HPpanel.setLayout(new java.awt.GridBagLayout());
 
         HPlbl.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
         HPlbl.setForeground(new java.awt.Color(255, 102, 0));
         HPlbl.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         HPlbl.setText("HP");
-        HPlbl.setMaximumSize(new java.awt.Dimension(80, 40));
+        HPlbl.setInheritsPopupMenu(false);
+        HPlbl.setMaximumSize(null);
         HPlbl.setMinimumSize(new java.awt.Dimension(40, 20));
         HPlbl.setPreferredSize(new java.awt.Dimension(40, 20));
-        HPpanel.add(HPlbl);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.VERTICAL;
+        gridBagConstraints.weightx = 0.2;
+        gridBagConstraints.weighty = 1.0;
+        HPpanel.add(HPlbl, gridBagConstraints);
 
         HealtBar.setBackground(new java.awt.Color(51, 51, 51));
         HealtBar.setForeground(new java.awt.Color(51, 255, 51));
-        HealtBar.setValue(30);
+        HealtBar.setValue(100);
         HealtBar.setBorderPainted(false);
-        HealtBar.setMaximumSize(new java.awt.Dimension(300, 30));
+        HealtBar.setMaximumSize(null);
         HealtBar.setMinimumSize(new java.awt.Dimension(150, 15));
         HealtBar.setPreferredSize(new java.awt.Dimension(150, 15));
         HealtBar.setString("");
-        HPpanel.add(HealtBar);
+        gridBagConstraints = new java.awt.GridBagConstraints();
+        gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
+        gridBagConstraints.weightx = 0.8;
+        gridBagConstraints.weighty = 1.0;
+        HPpanel.add(HealtBar, gridBagConstraints);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -333,11 +346,9 @@ public class BattlePanel extends ExpandPanel {
         gridBagConstraints.weighty = 1.0;
         add(HPpanel, gridBagConstraints);
 
-        StatusPanel.setMaximumSize(new java.awt.Dimension(400, 40));
         StatusPanel.setMinimumSize(new java.awt.Dimension(200, 20));
         StatusPanel.setName(""); // NOI18N
         StatusPanel.setOpaque(false);
-        StatusPanel.setPreferredSize(new java.awt.Dimension(200, 20));
         StatusPanel.setLayout(new java.awt.GridBagLayout());
 
         Status.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
@@ -345,10 +356,12 @@ public class BattlePanel extends ExpandPanel {
         Status.setText("STATUS");
         Status.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.LOWERED));
         Status.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Status.setMaximumSize(new java.awt.Dimension(100, 40));
+        Status.setInheritsPopupMenu(false);
+        Status.setMaximumSize(null);
         Status.setMinimumSize(new java.awt.Dimension(50, 20));
         Status.setName(""); // NOI18N
         Status.setPreferredSize(new java.awt.Dimension(50, 20));
+        Status.setRequestFocusEnabled(false);
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -362,7 +375,8 @@ public class BattlePanel extends ExpandPanel {
         Healt.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
         Healt.setText("HP Point");
         Healt.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-        Healt.setMaximumSize(new java.awt.Dimension(150, 20));
+        Healt.setInheritsPopupMenu(false);
+        Healt.setMaximumSize(null);
         Healt.setMinimumSize(new java.awt.Dimension(150, 20));
         Healt.setPreferredSize(new java.awt.Dimension(150, 20));
         gridBagConstraints = new java.awt.GridBagConstraints();

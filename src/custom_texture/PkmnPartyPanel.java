@@ -3,8 +3,6 @@ package custom_texture;
 import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import javax.swing.ImageIcon;
 import javax.swing.Timer;
@@ -17,7 +15,7 @@ import static objects.Pokemon.Status.*;
 /**
  * @author Thomas
  */
-public class PkmnPartyPanel extends ExpandPanel {
+public class PkmnPartyPanel extends GradientPanel {
     private static final long serialVersionUID = -7528379132904240646L;
     private final static String PATH = Board.ROOT+"/resources/image/";
     private static final int TIMER_DELAY = 150;
@@ -27,19 +25,17 @@ public class PkmnPartyPanel extends ExpandPanel {
     
     private final Pokemon pokemon;
     private final int startX, startY;
-    private Color original;
     private Timer timerIcon;
-    private MouseAdapter ma;
     private String path;
 
     /**
      * Creates new form PkmnPartyPanel
      * @param pkmn
-     * @param mult
      */
-    public PkmnPartyPanel (Pokemon pkmn, int mult) {
+    public PkmnPartyPanel (Pokemon pkmn) {
+//        super();
         initComponents();
-        expandComponent(mult);
+        expandComponent();
         
         pokemon = pkmn;
         startX = Icon.getX();
@@ -47,18 +43,22 @@ public class PkmnPartyPanel extends ExpandPanel {
         getPath();
         
         setTextColor();
-        refreshAll(mult);
-        startIconTimer(mult);
+        refreshAll();
+        startIconTimer();
     }
     
-    public final void refreshAll(int mult) {
-        ImageIcon image = SpriteImage.getImage(path);
-        Icon.setIcon(SpriteImage.getScaledImage(image, ICON_WIDTH*mult, ICON_HEIGTH*mult));
+    public final void refreshAll() {
+        int width = (int) (ICON_WIDTH*(Board.xDIM)); int height = (int) (ICON_HEIGTH*(Board.yDIM));
+        ImageIcon image = ImageConverter.getImage(path);
+        Icon.setIcon(ImageConverter.getScaledImage(image, width, height));
         Name.setText(pokemon.getSurname());
         if (!pokemon.getIfAsessual()) {
             String sex;
             if (pokemon.getIfMale()) { sex = "Male"; } else { sex = "Female"; }
-            Gender.setIcon(SpriteImage.getScaledImage(SpriteImage.getImage(PATH+sex+".png"), ICON_SIZE*mult));
+            int sizex = (int) (ICON_SIZE*(Board.xDIM));
+            int sizey = (int) (ICON_SIZE*(Board.yDIM));
+            Gender.setIcon(ImageConverter.getScaledImage(
+                    ImageConverter.getImage(PATH+sex+".png"), sizex, sizey));
         }
         HP.setText(pokemon.getStat("HP")+"/"+pokemon.getStat("MaxHP"));
         changeStatus(pokemon.getStatus());
@@ -74,46 +74,74 @@ public class PkmnPartyPanel extends ExpandPanel {
         bool.add(femaleBln);
         path = Pokemon.getImagePath(bool, pokemon.getID(), "icons");
     }
+    
     private void changeStatus(Status st) {
         if (st != null) {
             switch (st) {
                 case KO:
-                    this.setBackground(Color.red);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(255, 0, 0);
+                    back2 = new Color(200, 0, 20);
                     Name.setForeground(Color.lightGray);
                     HP.setForeground(Color.lightGray);
                     Status.setForeground(Color.lightGray);
                     Status.setText("");
                     break;
                 case Asleep:
-                    this.setBackground(Color.gray);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(200, 200, 200);
+                    back2 = new Color(50, 50, 50);
                     Status.setText("SLP");
                     break;
                 case Poison:
-                    this.setBackground(Color.magenta);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(250, 0, 250);
+                    back2 = new Color(120, 0, 120);
                     Status.setText("PSN");
                     break;
                 case BadPoison:
-                    this.setBackground(Color.darkGray);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(220, 0, 220);
+                    back2 = new Color(90, 0, 90);
                     Status.setText("BPSN");
                     break;
                 case Paralysis:
-                    this.setBackground(Color.yellow);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(255, 200, 0);
+                    back2 = new Color(185, 130, 0);
                     Status.setText("PAR");
                     break;
                 case Burn:
-                    this.setBackground(Color.orange);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(200, 100, 0);
+                    back2 = new Color(100, 50, 0);
                     Status.setText("BRN");
                     break;
                 case Freeze:
-                    this.setBackground(Color.cyan);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(0, 200, 200);
+                    back2 = new Color(0, 100, 100);
                     Status.setText("FRZ");
                     break;
                 default:
-                    this.setBackground(Color.blue);
+                    border1 = new Color(200, 200, 200);
+                    border2 = new Color(180, 180, 180);
+                    back1 = new Color(0, 0, 255);
+                    back2 = new Color(0, 0, 200);
                     Status.setText("");
                     break;
             }
         }
+        int borderx = (int) (BORDER*(Board.xDIM));
+        int bordery = (int) (BORDER*(Board.yDIM));
+        this.setBorder(new GradientBorder(borderx, bordery, border1, border2));
     }
     private void setTextColor() {
         Name.setForeground(Color.black);
@@ -121,14 +149,15 @@ public class PkmnPartyPanel extends ExpandPanel {
         HP.setForeground(Color.black);
         Status.setForeground(Color.black);
     }
-    private void startIconTimer(final int mult) {
+    
+    private void startIconTimer() {
         timerIcon = new Timer(TIMER_DELAY, new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (pokemon.getStatus() != KO) {
                     if (pokemon.getStatus() == OK) {
                         if (Icon.getY() == startY) {
-                            Icon.setLocation(startX, startY + 1*mult);
+                            Icon.setLocation(startX, (int) (startY + 1*(Board.yDIM)));
                         } else {
                             Icon.setLocation(startX, startY);
                         }
@@ -149,44 +178,10 @@ public class PkmnPartyPanel extends ExpandPanel {
         });
         timerIcon.start();
     }
-    private void addListener() {
-        ma = new MouseAdapter() {
-            @Override
-            public void mousePressed(MouseEvent e) {
-                original = getBackground();
-                Color back = new Color (getBackground().getRed(), getBackground().getGreen(), getBackground().getBlue());
-                int red, green, blue;
-                if ((back.getRed()+50) <= 255) {
-                    red = getBackground().getRed() + 50;
-                } else {
-                    red = 255;
-                }
-                if ((back.getGreen()+50) <= 255) {
-                    green = getBackground().getGreen() + 50;
-                } else {
-                    green = 255;
-                }
-                if ((back.getBlue()+50) <= 255) {
-                    blue = getBackground().getBlue() + 50;
-                } else {
-                    blue = 255;
-                }
-                setBackground(new Color (red, green, blue));
-                repaint();
-            }
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                setBackground(original);
-            }
-        };
-        this.addMouseListener(ma);
-    }
     
     public Pokemon getPokemon() {
         return pokemon;
     }
-    
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -209,29 +204,25 @@ public class PkmnPartyPanel extends ExpandPanel {
         Status = new javax.swing.JLabel();
 
         setBackground(new java.awt.Color(0, 51, 255));
-        setMaximumSize(new java.awt.Dimension(320, 120));
-        setMinimumSize(new java.awt.Dimension(160, 60));
+        setMaximumSize(null);
+        setMinimumSize(new java.awt.Dimension(80, 30));
         setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(160, 60));
         setLayout(new java.awt.GridBagLayout());
 
         IconPanel.setInheritsPopupMenu(true);
-        IconPanel.setMaximumSize(new java.awt.Dimension(80, 64));
-        IconPanel.setMinimumSize(new java.awt.Dimension(40, 32));
+        IconPanel.setMaximumSize(null);
+        IconPanel.setMinimumSize(new java.awt.Dimension(40, 30));
         IconPanel.setOpaque(false);
-        IconPanel.setPreferredSize(new java.awt.Dimension(40, 32));
+        IconPanel.setPreferredSize(new java.awt.Dimension(40, 30));
         IconPanel.setLayout(new java.awt.GridLayout(1, 0));
 
-        Icon.setBackground(new java.awt.Color(204, 204, 204));
         Icon.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
         Icon.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        Icon.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-        Icon.setDoubleBuffered(true);
         Icon.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Icon.setMaximumSize(new java.awt.Dimension(80, 64));
-        Icon.setMinimumSize(new java.awt.Dimension(40, 32));
-        Icon.setPreferredSize(new java.awt.Dimension(40, 32));
-        Icon.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
+        Icon.setMaximumSize(null);
+        Icon.setMinimumSize(new java.awt.Dimension(40, 30));
+        Icon.setPreferredSize(new java.awt.Dimension(40, 30));
         IconPanel.add(Icon);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -243,10 +234,10 @@ public class PkmnPartyPanel extends ExpandPanel {
 
         NamePanel.setBackground(new java.awt.Color(204, 204, 204));
         NamePanel.setInheritsPopupMenu(true);
-        NamePanel.setMaximumSize(new java.awt.Dimension(180, 64));
+        NamePanel.setMinimumSize(new java.awt.Dimension(90, 30));
         NamePanel.setName(""); // NOI18N
         NamePanel.setOpaque(false);
-        NamePanel.setPreferredSize(new java.awt.Dimension(90, 32));
+        NamePanel.setPreferredSize(new java.awt.Dimension(90, 30));
         NamePanel.setLayout(new java.awt.BorderLayout());
 
         Name.setBackground(new java.awt.Color(204, 204, 204));
@@ -255,10 +246,10 @@ public class PkmnPartyPanel extends ExpandPanel {
         Name.setText("NAME");
         Name.setDoubleBuffered(true);
         Name.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
-        Name.setMaximumSize(new java.awt.Dimension(180, 64));
-        Name.setMinimumSize(new java.awt.Dimension(90, 32));
+        Name.setMaximumSize(null);
+        Name.setMinimumSize(new java.awt.Dimension(90, 30));
         Name.setName(""); // NOI18N
-        Name.setPreferredSize(new java.awt.Dimension(90, 32));
+        Name.setPreferredSize(new java.awt.Dimension(90, 30));
         NamePanel.add(Name, java.awt.BorderLayout.CENTER);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -272,9 +263,10 @@ public class PkmnPartyPanel extends ExpandPanel {
 
         GenderPanel.setBackground(new java.awt.Color(204, 204, 204));
         GenderPanel.setInheritsPopupMenu(true);
-        GenderPanel.setMaximumSize(new java.awt.Dimension(60, 64));
+        GenderPanel.setMinimumSize(new java.awt.Dimension(30, 30));
+        GenderPanel.setName(""); // NOI18N
         GenderPanel.setOpaque(false);
-        GenderPanel.setPreferredSize(new java.awt.Dimension(30, 32));
+        GenderPanel.setPreferredSize(new java.awt.Dimension(30, 30));
         GenderPanel.setLayout(new java.awt.BorderLayout());
 
         Gender.setBackground(new java.awt.Color(204, 204, 204));
@@ -282,9 +274,10 @@ public class PkmnPartyPanel extends ExpandPanel {
         Gender.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Gender.setDoubleBuffered(true);
         Gender.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Gender.setMaximumSize(new java.awt.Dimension(60, 64));
-        Gender.setMinimumSize(new java.awt.Dimension(30, 32));
-        Gender.setPreferredSize(new java.awt.Dimension(30, 32));
+        Gender.setMaximumSize(null);
+        Gender.setMinimumSize(new java.awt.Dimension(30, 30));
+        Gender.setName(""); // NOI18N
+        Gender.setPreferredSize(new java.awt.Dimension(30, 30));
         GenderPanel.add(Gender, java.awt.BorderLayout.CENTER);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -297,7 +290,6 @@ public class PkmnPartyPanel extends ExpandPanel {
 
         StatsPanel.setBackground(new java.awt.Color(204, 204, 204));
         StatsPanel.setInheritsPopupMenu(true);
-        StatsPanel.setMaximumSize(new java.awt.Dimension(320, 60));
         StatsPanel.setMinimumSize(new java.awt.Dimension(160, 30));
         StatsPanel.setOpaque(false);
         StatsPanel.setPreferredSize(new java.awt.Dimension(160, 30));
@@ -308,7 +300,7 @@ public class PkmnPartyPanel extends ExpandPanel {
         HP.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         HP.setDoubleBuffered(true);
         HP.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        HP.setMaximumSize(new java.awt.Dimension(260, 60));
+        HP.setMaximumSize(null);
         HP.setMinimumSize(new java.awt.Dimension(130, 30));
         HP.setPreferredSize(new java.awt.Dimension(130, 30));
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -325,7 +317,7 @@ public class PkmnPartyPanel extends ExpandPanel {
         Status.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         Status.setDoubleBuffered(true);
         Status.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        Status.setMaximumSize(new java.awt.Dimension(100, 60));
+        Status.setMaximumSize(null);
         Status.setMinimumSize(new java.awt.Dimension(50, 30));
         Status.setPreferredSize(new java.awt.Dimension(50, 30));
         gridBagConstraints = new java.awt.GridBagConstraints();

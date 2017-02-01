@@ -1,6 +1,7 @@
 package screen;
 
 import custom_texture.ExpandPanel;
+import custom_texture.PopupMessage;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -33,7 +34,6 @@ public class Board extends JFrame {
     public static final double QUARTER = 4;
     public static final double EIGHTH = 8;
     public static final double NULL = 0;
-    protected static int FRAME_DIM = 1;
     
     protected static final int A_BTN = KeyEvent.VK_Z;
     protected static final int B_BTN = KeyEvent.VK_X;
@@ -47,23 +47,32 @@ public class Board extends JFrame {
     protected static final int DOWN_BTN = KeyEvent.VK_DOWN;
     
     private static SplashScreen splashScreen;
-    private final GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
-    private final GraphicsDevice device = env.getDefaultScreenDevice();
     
-    private final boolean isFull = false;
     private boolean screenFunct = true;
+    public static boolean isFull = false;
+    public static double screenMaxDimx;
+    public static double screenMaxDimy;
+    public static double xDIM, yDIM;
+    public static double c_xDIM, c_yDIM;
+    public static double screenMaxDim;
+    public static double screenWidth;
+    public static double screenHeight;
+    private boolean isHorizzontal;
     public Board board;
+    private final JPanel panel = new JPanel();
+    private final JPanel glass = new JPanel();
+    private JPanel currentPanel = new JPanel();
+    
+    public enum Direction {
+        NORTH, SOUTH, EAST, WEST,
+        NORTH_EAST, NORTH_WEST,
+        SOUTH_EAST, SOUTH_WEST
+    }
 
     public Board(String name, Trainer main) throws IOException {
-//        Timer timer = new Timer(50, new ActionListener() {
-//            @Override
-//            public void actionPerformed(ActionEvent e) {
-//                requestFocus();
-//            }
-//        });
-//        timer.start();
+        xDIM = yDIM = 1;
+        c_xDIM = c_yDIM = 1;
         putUI();
-        centerFrame((JFrame) this);
         
         Pokemon enemy = new Pokemon(43, 36, true, null, null);
         
@@ -75,61 +84,106 @@ public class Board extends JFrame {
         rival.getParty().addPkmnToParty(gengar);
         rival.getParty().addPkmnToParty(ariados);
         
-        final BattleBoard battleBoard = new BattleBoard(main, rival/*enemy*/, 1);
-
-//        final StatsBoard statsBoard = new StatsBoard(main);
+        final BattleBoard battleBoard = new BattleBoard(main, rival/*enemy*/);
+        currentPanel = battleBoard;
         
-        this.setSize(FRAME_WIDTH*FRAME_DIM, FRAME_HEIGHT*FRAME_DIM);
-//        System.out.println((FRAME_WIDTH*FRAME_DIM)+" "+(FRAME_HEIGHT*FRAME_DIM));
         this.setTitle(name);
+        this.setResizable(false);
         this.setFocusable(true);
         this.requestFocusInWindow();
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setResizable(false);           
-        this./*getContentPane().*/add(battleBoard);
-        this.pack();
+        
+        LayoutManager overlay = new OverlayLayout(panel);
+        panel.setLayout(overlay);
+        glass.setOpaque(false);
+        glass.setSize((int) screenWidth, (int) screenHeight);
+        FlowLayout layout = new FlowLayout();
+        glass.setLayout(new FlowLayout());
+        
+        panel.add(glass);
+        panel.add(currentPanel);
+        
+        this.add(panel);
+        
+        getScreenSettings();
         
         addKeyListener(new KeyListener() {
             @Override
             public void keyPressed(KeyEvent event) {
-//                if ()
                 switch (event.getKeyCode()) {
-                    case KeyEvent.VK_F:
-//                        if (getExtendedState() != JFrame.MAXIMIZED_BOTH) {
-//                        if (!isFull) {
-//                            device.setFullScreenWindow(board);
-//                            setExtendedState(JFrame.MAXIMIZED_BOTH);
-//                            setUndecorated(true);
-//                            setVisible(true);
-//                            isFull = true;
-//                        } else {
-//                            device.setFullScreenWindow(null);
-//                            setExtendedState(0);
-//                            setUndecorated(false);
-//                            setVisible(true);
-//                            isFull = false;
-//                        }
+                    case KeyEvent.VK_F6: //Reset the board
+                        setVisible(false);
+                        dispose(); //Destroy the current board
+                        splashScreen = new SplashScreen("reset_test", mainCharacter);
+                        xDIM = yDIM = 1;
+                        centerFrame((JFrame) event.getSource());
                         break;
-                    case KeyEvent.VK_F12:
+                    case KeyEvent.VK_F10:
                         System.out.println(getCurrentBoardLock());
+                        break;
+                    case KeyEvent.VK_F11:
                         if (!getCurrentBoardLock()) {
                             setVisible(false);
-                            if (FRAME_DIM != 1) {
-                                FRAME_DIM = 1;
+                            dispose();
+                            setUndecorated(!isFull);
+                            if (!isFull) {
+                                isFull = true;
+                                c_xDIM = xDIM;
+                                c_yDIM = yDIM;
+                                xDIM = screenMaxDimx;
+                                yDIM = screenMaxDimy;
+                                getCurrentBoard().changeGraphic();
+                                centerFullFrame((JFrame) event.getSource(), isHorizzontal);
+                                setAlwaysOnTop(true);
+                                setCursor(getToolkit().createCustomCursor(
+                                    new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
                             } else {
-                                FRAME_DIM = 2;
+                                xDIM = c_xDIM;
+                                yDIM = c_yDIM;
+                                isFull = false;
+                                getCurrentBoard().changeGraphic();
+                                centerFrame((JFrame) event.getSource());
+                                setAlwaysOnTop(false); pack();
+                                setCursor(Cursor.getDefaultCursor());
                             }
-                            battleBoard.changeGraphic(FRAME_DIM);
+                            setVisible(true);
+                        }
+                        break;
+                    case KeyEvent.VK_F12:
+                        if (!getCurrentBoardLock()) {
+                            setVisible(false);
+                            if (isFull) {
+                                xDIM = c_xDIM;
+                                yDIM = c_yDIM;
+                                isFull = false; dispose();
+                                setAlwaysOnTop(false);
+                                setUndecorated(false);
+                            }
+                            if ((xDIM+0.25) <= screenMaxDim-0.25) {
+                                xDIM += 0.25;
+                                yDIM += 0.25;
+                            } else {
+                                xDIM = 1;
+                                yDIM = 1;
+                            }
+                            getCurrentBoard().changeGraphic();
                             centerFrame((JFrame) event.getSource());
                             pack();
+                            PopupMessage l = new PopupMessage("xDIM: "+xDIM+"xDIM: "+xDIM, "Dimension", 0, glass);
+                            for (Component comp : glass.getComponents()) {
+                                if (comp.getName().equals("Board:Dimension")) {
+                                    glass.remove(comp);
+                                }
+                            }
+                            glass.add(l);
                             setVisible(true);
                         }
                         break;
                     case KeyEvent.VK_ESCAPE:
                         //http://stackoverflow.com/questions/1234912/how-to-programmatically-close-a-jframe
                         dispatchEvent(new WindowEvent((Window) event.getSource(), WindowEvent.WINDOW_CLOSING));
-                        setVisible(false); //you can't see me!
-                        dispose(); //Destroy the JFrame object
+                        setVisible(false);
+                        dispose(); //Destroy the Board
                     default:
                         screenFunct = false;
                         break;
@@ -143,15 +197,16 @@ public class Board extends JFrame {
             @Override
             public void keyReleased(KeyEvent event) {
                 if (!screenFunct) {
-                    battleBoard.checkKey(event);
+                    getCurrentBoard().checkKey(event);
                     screenFunct = true;
                 }
             }
         });
-        this.setVisible(true);
         
-        this.setCursor(this.getToolkit().createCustomCursor(
-            new BufferedImage(3, 3, BufferedImage.TYPE_INT_ARGB), new Point(0, 0),"null"));
+        getCurrentBoard().changeGraphic();
+        centerFrame((JFrame) this);
+        this.pack();
+        this.setVisible(true);
     }
 
     public static void main(String[] args) {
@@ -159,7 +214,7 @@ public class Board extends JFrame {
             @Override
             public void run() {
                 try {
-                    mainCharacter = new Trainer("Fat_Ass");
+                    mainCharacter = new Trainer("Jesus");
 
                     Pokemon gyarados = new Pokemon(130, 100, false, mainCharacter.getHexID(), mainCharacter.getOctID());
                     Pokemon charizard = new Pokemon(6, 50, false, mainCharacter.getHexID(), mainCharacter.getOctID());
@@ -176,66 +231,59 @@ public class Board extends JFrame {
                     
                     splashScreen = new SplashScreen("test", mainCharacter);
                 } catch (Exception e) {
+                    e.printStackTrace();
                 }
             }
         });
     }
     
-    private boolean getCurrentBoardLock() {
-        for (Component comp : getRootPane().getLayeredPane().getComponents()) {
-            if (comp instanceof Container) {
-                Container cont = (Container) comp;
-                for (Component comp2 : cont.getComponents()) {
-                    if (comp2 instanceof ExpandPanel) {
-                        ExpandPanel cont2 = (ExpandPanel) comp2;
-                        System.out.println(cont2.getClass());
-                        return cont2.lock;
-                    }
-                }
+    private void getScreenSettings() {
+//        PopupMessage l = new PopupMessage(
+//                (FRAME_WIDTH*xDIM)+" "+(FRAME_HEIGHT*yDIM), "CurrentDimension", 5, glass);
+//        glass.add(l);
+        System.out.println((FRAME_WIDTH*xDIM)+" "+(FRAME_HEIGHT*yDIM));
+        
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        screenWidth = screenSize.getWidth();
+        screenHeight = screenSize.getHeight();
+//        PopupMessage l1 = new PopupMessage(
+//                "widthMax: "+screenWidth+"; heightMax: "+screenHeight, "MaxSize", 5, glass);
+//        glass.add(l1);
+        System.out.println("widthMax: "+screenWidth+"; heightMax: "+screenHeight);
+        
+        double xDim = screenWidth/getCurrentBoard().getPreferredSize().width;
+        double yDim = screenHeight/getCurrentBoard().getPreferredSize().height;
+//        PopupMessage l2 = new PopupMessage(
+//                "xDim: "+xDim+"; yDim: "+yDim, "xyDimension", 5, glass);
+//        glass.add(l2);
+        System.out.println("xDim: "+xDim+"; yDim: "+yDim);
+        
+        screenMaxDimx = xDim;
+        screenMaxDimy = yDim;
+        screenMaxDim = (xDim - yDim >= 0 ? yDim : xDim);
+        isHorizzontal = xDim >= yDim;
+//        PopupMessage l3 = new PopupMessage(
+//                "screenMaxDimx: "+screenMaxDimx+"; screenMaxDimy: "+screenMaxDimy, "MaxDimension", 5, glass);
+//        glass.add(l3);
+        System.out.println("screenMaxDim: "+screenMaxDim);
+    }
+    
+    private ExpandPanel getCurrentBoard() {
+        for (Component comp : panel.getComponents()) {
+            if (comp instanceof ExpandPanel) {
+                return (ExpandPanel) comp;
             }
         }
-        return false;
+        return null;
+    }
+    
+    private boolean getCurrentBoardLock() {
+        ExpandPanel temp = getCurrentBoard();
+        return temp.lock;
     }
 
     private void putUI() {
         try {
-            Color bgc = new Color(0, 255, 0);
-//            Color fgc = new Color(255, 0, 0);
-//            Font f = createFont();
-//            setUIFont(new javax.swing.plaf.FontUIResource(f));
-
-//            UIManager.put("Button.font", f);
-//            UIManager.put("ToggleButton.font", f);
-//            UIManager.put("RadioButton.font", f);
-//            UIManager.put("CheckBox.font", f);
-//            UIManager.put("ColorChooser.font", f);
-//            UIManager.put("ComboBox.font", f);
-//            UIManager.put("Label.font", f);
-//            UIManager.put("List.font", f);
-//            UIManager.put("MenuBar.font", f);
-//            UIManager.put("MenuItem.font", f);
-//            UIManager.put("RadioButtonMenuItem.font", f);
-//            UIManager.put("CheckBoxMenuItem.font", f);
-//            UIManager.put("Menu.font", f);
-//            UIManager.put("PopupMenu.font", f);
-//            UIManager.put("OptionPane.font", f);
-//            UIManager.put("Panel.font", f);
-//            UIManager.put("ProgressBar.font", f);
-//            UIManager.put("ScrollPane.font", f);
-//            UIManager.put("Viewport.font", f);
-//            UIManager.put("TabbedPane.font", f);
-//            UIManager.put("Table.font", f);
-//            UIManager.put("TableHeader.font", f);
-//            UIManager.put("TextField.font", f);
-//            UIManager.put("PasswordField.font", f);
-//            UIManager.put("TextArea.font", f);
-//            UIManager.put("TextPane.font", f);
-//            UIManager.put("EditorPane.font", f);
-//            UIManager.put("TitledBorder.font", f);
-//            UIManager.put("ToolBar.font", f);
-//            UIManager.put("ToolTip.font", f);
-//            UIManager.put("Tree.font", f);
-
 //            UIManager.put("control", new Color(255, 255, 255, 0));
             UIManager.put("info", new Color(255, 255, 255, 0)); //remove
 //            UIManager.put("nimbusAlertYellow", bgc);
@@ -306,8 +354,21 @@ public class Board extends JFrame {
     private void centerFrame(JFrame frame) {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point centerPoint = ge.getCenterPoint();
-        int dx = centerPoint.x - (FRAME_WIDTH*FRAME_DIM)/2;
-        int dy = centerPoint.y - (FRAME_HEIGHT*FRAME_DIM)/2;
+        int dx = (int) (centerPoint.x - (FRAME_WIDTH*xDIM)/2);
+        int dy = (int) (centerPoint.y - (FRAME_HEIGHT*yDIM)/2);
         frame.setLocation(dx, dy);
+    }
+    
+    private void centerFullFrame(JFrame frame, boolean h) {
+        if (h) {
+            int dx = (int) ((screenWidth-getCurrentBoard().getSize().width)/2);
+            getCurrentBoard().setLocation(dx, 0);
+        } else {
+            int dy = (int) ((screenHeight-getCurrentBoard().getSize().height)/2);
+            getCurrentBoard().setLocation(0, dy);
+        }
+        frame.setSize((int) screenWidth, (int) screenHeight);
+        frame.setLocation(0, 0);
+        System.out.println(frame.getSize().width+" "+frame.getSize().height);
     }
 }

@@ -27,13 +27,13 @@ public class BattleBoard extends ExpandPanel {
     private static final int DEFAULT_CLOCK = 50;
     private static final int TEXT_CLOCK = 500;
     private static final int CURRENT_PKMN = 0;
-    private static final int MIN_BOARD_WIDTH = 512;
-    private static final int MIN_BOARD_HEIGHT = 280;
+    private static final int BOARD_WIDTH = 512;
+    private static final int BOARD_HEIGHT = 284;
+    private static final int BORDER = 10;
     
     private BattlePanel eBattlePanel, BattlePanel;
     private SpritePanel eSpritePanel, SpritePanel;
     private BattleTab BattleTabs;
-    private int DIM = 1;
     
     private final BattleEngine battleEngine;
     private Thread battleThread;
@@ -63,10 +63,17 @@ public class BattleBoard extends ExpandPanel {
      * Creates new form BattleBoard
      * @param self
      * @param trn_pkmn
-     * @param dim
      * @throws java.io.IOException
      */  
-    public BattleBoard(Trainer self, Object trn_pkmn, int dim) throws IOException {
+    public BattleBoard(Trainer self, Object trn_pkmn) throws IOException {
+        super();
+        createBoard(self, trn_pkmn);
+        isTrainer = (enemy != null);
+        battleEngine = new BattleEngine(2, null, null, isTrainer);
+        initBoard();
+    }
+    
+    private void createBoard(Trainer self, Object trn_pkmn) {
         this.self = self;
         if (trn_pkmn.getClass() == Pokemon.class) {
             otherPokemon = (Pokemon) trn_pkmn;
@@ -74,11 +81,7 @@ public class BattleBoard extends ExpandPanel {
             this.enemy = (Trainer) trn_pkmn;
             otherPokemon = enemy.getParty().getPkmn(CURRENT_PKMN);
         }
-        DIM = dim;
-        isTrainer = (enemy != null);
-        battleEngine = new BattleEngine(2, null, null, isTrainer);
         setName("battleBoard");
-        initBoard();
     }
     
     private void initBoard() {
@@ -103,7 +106,7 @@ public class BattleBoard extends ExpandPanel {
     
     private void createBoard() {
         initComponents();
-        expandComponent(DIM);
+        expandComponent();
         
         printBasicBoard();
         decleareThread();
@@ -149,7 +152,7 @@ public class BattleBoard extends ExpandPanel {
                         if (!firstTurn) {
                             try {
                                 defeatPkmn = battleEngine.setRoundFinish(selfPokemon, otherPokemon);
-                                setRecoil(); printText(Key.Damage);
+                                printText(Key.Damage); setRecoil();
                                 while (selfHit || otherHit) {
                                     try { Thread.sleep(DEFAULT_CLOCK); } catch (InterruptedException ex) { } //sleep
                                 }
@@ -158,7 +161,6 @@ public class BattleBoard extends ExpandPanel {
                                 playBattle = false; selfMove = null;
                                 selfSwitch = null; otherSwitch = null;
                                 BattleTabs.printParty();
-                                printText(Key.Weather);
                                 setBackgroundWeather();
                                 hideTabs(false); lock = false;
                             } catch (InterruptedException ex) {
@@ -382,14 +384,15 @@ public class BattleBoard extends ExpandPanel {
 /******************************************************************************/  
     //These methods refresh the GUI
     private void hideTabs(boolean hide) {
-        blockTab = hide;
         if (!hide) {
             try {
                 Thread.sleep(TEXT_CLOCK);
                 BattleTabs.stopEcho();
+                lock = blockTab = hide;
             } catch (InterruptedException ex) {
             }
         } else {
+            lock = blockTab = hide;
             BattleTabs.startEcho();
         }
     }
@@ -453,21 +456,33 @@ public class BattleBoard extends ExpandPanel {
     }
     
     private void printBasicBoard() {
-        eBattlePanel = new BattlePanel(otherPokemon, false, DIM);
-        BattlePanel = new BattlePanel(selfPokemon, true, DIM);
-        eSpritePanel = new SpritePanel(otherPokemon, false, DIM);
-        SpritePanel = new SpritePanel(selfPokemon, true, DIM);
-
+        eBattlePanel = new BattlePanel(otherPokemon, false);
+        BattlePanel = new BattlePanel(selfPokemon, true);
+        eSpritePanel = new SpritePanel(otherPokemon, false);
+        SpritePanel = new SpritePanel(selfPokemon, true);
+        
+        int board_width = (int) (BOARD_WIDTH*xDIM);
+        int board_height = (int) (BOARD_HEIGHT*yDIM);
+        System.out.println(xDIM+" "+yDIM);
+        System.out.println("width: "+board_width+"; height: "+board_height);
+        
         BattleBoard.add(eBattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
-                10*DIM, 10*DIM, -1, -1));
+                (int) (BORDER*xDIM), (int) (BORDER*yDIM), -1, -1));
+        
+        int width = (int) (BattlePanel.getMinimumSize().width*xDIM*2);
+        int height = (int) (BattlePanel.getMinimumSize().height*yDIM*2);
         BattleBoard.add(BattlePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
-                (MIN_BOARD_WIDTH*DIM)-((BattlePanel.getMinimumSize().width*DIM)+10*DIM),
-                (MIN_BOARD_HEIGHT*DIM)-((BattlePanel.getMinimumSize().height*DIM)+10*DIM), -1, -1));
+                (int) ((board_width)-((width)+BORDER*xDIM)),
+                (int) ((board_height)-((height)+BORDER*yDIM)), -1, -1));
 
+        width = (int) (eSpritePanel.getMinimumSize().width*xDIM);
         BattleBoard.add(eSpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
-                (MIN_BOARD_WIDTH*DIM)-((eSpritePanel.getMinimumSize().width*DIM)+10*DIM), 10*DIM, -1, -1));
+                (int) ((board_width)-((width)+BORDER*xDIM)), (int) (BORDER*yDIM), -1, -1));
+            System.out.println((board_width)-((width)+BORDER*xDIM));
+        
+        height = (int) (SpritePanel.getMinimumSize().height*yDIM);
         BattleBoard.add(SpritePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(
-                10*DIM, (MIN_BOARD_HEIGHT*DIM)-((SpritePanel.getMinimumSize().height*DIM)+10*DIM), -1, -1));
+                (int) (BORDER*xDIM), (int) ((board_height)-((height)+BORDER*yDIM)), -1, -1));
 
         GridBagConstraints gridBagConstraints = new GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -476,10 +491,10 @@ public class BattleBoard extends ExpandPanel {
         gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 0.0;
         if (BattleTabs == null) {
-            BattleTabs = new BattleTab(self, selfPokemon, 0, DIM);
+            BattleTabs = new BattleTab(self, selfPokemon, 0);
         } else {
             BattleTab bt = BattleTabs;
-            BattleTabs = new BattleTab(bt, DIM);
+            BattleTabs = new BattleTab(bt);
         }
         add(BattleTabs, gridBagConstraints);
     }
@@ -494,28 +509,30 @@ public class BattleBoard extends ExpandPanel {
         }
     }
     
-    public void changeGraphic(int mult) {
-        DIM = mult;
+    @Override
+    public void changeGraphic() {
         BattleBoard.remove(BattlePanel);
         BattleBoard.remove(eBattlePanel);
         BattleBoard.remove(SpritePanel);
         BattleBoard.remove(eSpritePanel);
         remove(BattleTabs);
-        expandComponent(DIM);
+        expandComponent();
         
         printBasicBoard();
         revalidate();
         repaint();
     }
     
+    
+    
 /******************************************************************************/    
     /**
      * Take the event from Parent an applies it to the current tab
      * @param e 
      */
-    protected void checkKey(KeyEvent e) {
+    @Override
+    public void checkKey(KeyEvent e) {
         if (!blockTab) {
-            lock = true;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_1:
                     BattleTabs.rapidShowTab(0);
@@ -582,7 +599,6 @@ public class BattleBoard extends ExpandPanel {
                                         selfPokemon.getMoveSet().get(BattleTabs.getMovesPos())
                                                 .decreasePP(false, 1);
                                         mvp.changePP();
-                                        mvp.recolor();
                                         firstTurn = true;
                                         selfMove = mvp.getMove();
                                         playBattle = true;
@@ -620,6 +636,8 @@ public class BattleBoard extends ExpandPanel {
                     }
                     break;
                 case B_BTN:
+                    System.out.println(getSize());
+                    System.out.println(BattleBoard.getSize());
                     break;
                 case KeyEvent.VK_NUMPAD1:
                     if (selfPokemon.getStatus() != Paralysis) {
@@ -666,6 +684,15 @@ public class BattleBoard extends ExpandPanel {
                         eBattlePanel.printStat();
                     }
                     break;
+                case KeyEvent.VK_NUMPAD6:
+                    if (selfPokemon.getStatus() != Asleep) {
+                        SpritePanel.colorImage(Asleep);
+                        BattleTabs.printModifiedPkmn(selfPokemon);
+                        selfPokemon.setStatus(Asleep);
+                        BattlePanel.printStat();
+                        eBattlePanel.printStat();
+                    }
+                    break;
                 default:
                     break;
             }
@@ -686,22 +713,20 @@ public class BattleBoard extends ExpandPanel {
 
         setBackground(new java.awt.Color(51, 51, 51));
         setToolTipText("");
-        setMaximumSize(new java.awt.Dimension(1024, 768));
-        setMinimumSize(new java.awt.Dimension(512, 384));
+        setMinimumSize(new java.awt.Dimension(256, 192));
         setName(""); // NOI18N
         setPreferredSize(new java.awt.Dimension(512, 384));
         setLayout(new java.awt.GridBagLayout());
 
         BattleBoard.setBackground(new java.awt.Color(102, 204, 0));
-        BattleBoard.setMaximumSize(new java.awt.Dimension(1024, 560));
-        BattleBoard.setMinimumSize(new java.awt.Dimension(512, 280));
-        BattleBoard.setPreferredSize(new java.awt.Dimension(512, 280));
+        BattleBoard.setMinimumSize(new java.awt.Dimension(256, 142));
+        BattleBoard.setName(""); // NOI18N
+        BattleBoard.setPreferredSize(new java.awt.Dimension(512, 284));
         BattleBoard.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
         gridBagConstraints.fill = java.awt.GridBagConstraints.BOTH;
-        gridBagConstraints.weightx = 1.0;
         gridBagConstraints.weighty = 1.0;
         add(BattleBoard, gridBagConstraints);
     }// </editor-fold>//GEN-END:initComponents
